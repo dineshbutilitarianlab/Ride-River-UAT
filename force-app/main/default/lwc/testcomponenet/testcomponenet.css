@@ -1,0 +1,25 @@
+.lightning-studio{
+	color : blue;
+}
+.custom-datetime {
+    width: 100%; /* Set the width */
+    margin: 10px 0; /* Add some margin */
+}
+
+/* Target the inner input directly */
+.custom-datetime input {
+    border: 1px solid #d1d1d1; /* Change border color */
+    padding: 10px; /* Add padding */
+    border-radius: 5px; /* Rounded corners */
+    background-color: #f9f9f9; /* Light background */
+    font-size: 14px; /* Adjust font size */
+}
+
+/* Add hover effect */
+.custom-datetime input:hover {
+    border-color: #0070d2; /* Change border color on hover */
+}
+.lightning-combobox {
+    max-height: 200px; /* Control the height */
+    overflow-y: auto; /* Allow scrolling */
+}

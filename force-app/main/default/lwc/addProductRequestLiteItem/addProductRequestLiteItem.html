@@ -1,0 +1,98 @@
+<template>
+    
+    <lightning-quick-action-panel header="">
+        <lightning-card title="Add Product Request Line Item" icon-name="standard:product_request">
+            <template if:true={showSpinner}>
+                <lightning-spinner></lightning-spinner>
+            </template>
+            <div class="slds-p-around_medium">
+                <lightning-input 
+                    type="text" 
+                    placeholder="Search by Product Name..." 
+                    onchange={handleSearchInput}
+                    class="slds-m-bottom_medium">
+                </lightning-input>
+                <!-- Main Table -->
+                <template if:true={filteredRequestLineItems.length}>
+                    <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                        <thead>
+                            <tr>
+                                <th><lightning-input type="checkbox" onchange={handleSelectAll} checked={selectAllChecked}></lightning-input></th>
+                                <th scope="col">Product Name</th>
+                                <th scope="col">Product Code</th>
+                                <th scope="col">Quantity</th>
+                               
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={filteredRequestLineItems} for:item="item">
+                                <tr key={item.Id}>
+                                    <td>
+                                        <lightning-input type="checkbox" data-id={item.Id} checked={item.selected} onchange={handleCheckboxChange}></lightning-input>
+                                    </td>
+                                    <td>{item.ProductName}</td>
+                                    <td>{item.HSNCode}</td>
+                                    <td>
+                                        <lightning-input type="number" data-id={item.Id} value={item.AllocatedQuantity} disabled={item.isChargesDisabled} style="margin-bottom:14px"></lightning-input>
+                                    </td>
+                                    
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </template>
+                <template if:false={filteredRequestLineItems.length}>
+                    <p>Search By Product Name</p>
+                </template>
+                <!-- Selected Items Table -->
+                <template if:true={selectedItems.length}>
+                    <h3 class="slds-text-align_center slds-text-title_large" style="font-size:large;margin-top:7px">Selected Items</h3>
+                    <div class="slds-m-top_medium">
+                        <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Product Name</th>
+                                    <th scope="col">Product Code</th>
+                                    <th scope="col">Quantity</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={selectedItems} for:item="item">
+                                    <tr key={item.Id}>
+                                        <td>{item.ProductName}</td>
+                                        <td>{item.HSNCode}</td>
+                                        <td><lightning-input 
+                                            type="number" 
+                                            data-id={item.Id} 
+                                            value={item.AllocatedQuantity} 
+                                            onchange={handleQuantityChange}
+                                            style="margin-bottom:14px">
+                                        </lightning-input></td>
+                                        <td> <lightning-button 
+                                            icon-name="utility:delete" 
+                                            alternative-text="Delete" 
+                                            onclick={handleDeleteSelectedItem} 
+                                            data-id={item.Id} 
+                                            size="small"
+                                            variant="destructive"
+                                            class="slds-m-left_x-small"
+                                            >
+                                        </lightning-button></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+
+                    </div>
+                    
+                </template>
+            </div>
+            <center>
+                <lightning-button label="Cancel" variant="destructive" onclick={closeModal} class="slds-m-right_medium"></lightning-button>
+                <lightning-button label="Submit" variant="brand" onclick={handleUpdateProcess}></lightning-button>
+            </center>
+        </lightning-card>
+    </lightning-quick-action-panel>
+    
+</template>

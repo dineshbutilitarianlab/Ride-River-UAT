@@ -1,0 +1,20 @@
+.custom-provider-container {
+    display: flex;
+    flex-direction: row; /* Arrange items in a row */
+    align-items: center; /* Vertically center align label and combobox */
+    gap: 2rem; /* Add space between the label and combobox */
+    margin-top: -1rem;
+    margin-bottom: 1rem; /* Add spacing below the entire container */
+}
+
+.custom-provider-label {
+   /* font-weight: bold;  Optional: Make the label bold */
+    font-size: 0.875rem; /* Optional: Adjust label font size */
+    min-width: 100px; /* Set a minimum width to align label with other fields */
+    text-align: left; /* Right-align the label text */
+}
+
+.custom-provider-combobox {
+    width: 70%; /* Ensure combobox takes full width */
+    max-width: 300px; /* Optional: Set a maximum width for the combobox */
+}

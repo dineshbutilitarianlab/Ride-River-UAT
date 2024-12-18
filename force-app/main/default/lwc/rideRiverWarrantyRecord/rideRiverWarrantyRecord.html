@@ -1,0 +1,156 @@
+<template>
+  <div class="form-container">
+
+    <!-- Header Section -->
+    <div class="section warranty-details">
+      <div class="header">Warranty Prior Form</div>
+      <div class="section-title-wrapper">
+        <lightning-icon icon-name="utility:info" alternative-text="Warranty Details"></lightning-icon>
+        <h2 class="section-title">Warranty Prior</h2>
+      </div>
+    </div>
+
+    <!-- Warranty Details Section -->
+    <div class="form-layout">
+      <div class="flex-item">
+        <lightning-input 
+          label="Warranty Prior No" 
+          value={warrantyPrior.Name} 
+          disabled>
+        </lightning-input>
+        <lightning-input 
+          label="Odometer Reading" 
+          value={warrantyPrior.Odometer_Reading__c} 
+          disabled>
+        </lightning-input>
+        <lightning-input 
+          label="Warranty Prior Date" 
+          value={warrantyPrior.Warranty_Prior_Date__c} 
+          disabled>
+        </lightning-input>
+        <lightning-input 
+          label="VIN" 
+          value={warrantyPrior.VIN__c} 
+          disabled>
+        </lightning-input>
+      </div>
+      <div class="flex-item">
+        <lightning-input 
+          label="Registration Number" 
+          value={warrantyPrior.Registration_Number__c} 
+          disabled>
+        </lightning-input>
+        <lightning-input 
+          label="Motor Number" 
+          value={warrantyPrior.Motor_Number__c} 
+          type="text" 
+          disabled>
+        </lightning-input>
+        <lightning-input 
+          label="Total Amount" 
+          value={warrantyPrior.Total_Claim_Amount__c} 
+          type="currency"
+          disabled>
+        </lightning-input>
+        <!-- <lightning-combobox
+          label="Type of Warranty"
+          placeholder="Select Warranty Type"
+          value={warrantyPrior.Type_of_Warranty__c}
+          options={warrantyOptions}
+          onchange={handleFieldChange}
+          data-field="Type_of_Warranty__c">
+        </lightning-combobox> -->
+      </div>
+    </div>
+
+    <!-- Parts Section -->
+    <div class="section">
+      <lightning-card title="Parts Details" icon-name="utility:settings">
+        <lightning-datatable
+          key-field="Id"
+          data={partsData}
+          columns={partsColumns}
+          hide-checkbox-column
+          draft-values={draftValuesParts}
+          oncellchange={handleCellChange}
+          onsave={handlePartsSave}>
+        </lightning-datatable>
+      </lightning-card>
+    </div>
+
+    <!-- Labour Section -->
+    <!-- <div class="section">
+      <lightning-card title="Labour Details" icon-name="utility:people">
+        <lightning-datatable
+          key-field="Id"
+          data={labourData}
+          columns={labourColumns}
+          hide-checkbox-column
+          draft-values={draftValuesLabours}
+          oncellchange={handleCellChange}
+          onsave={handleLaboursSave}>
+        </lightning-datatable>
+      </lightning-card>
+    </div> -->
+
+    <!-- Additional Details Section -->
+    <div class="section">
+      <div class="section-title-wrapper">
+        <lightning-icon icon-name="utility:info_alt" alternative-text="Additional Details"></lightning-icon>
+        <h2 class="section-title">Additional Details</h2>
+      </div>
+      <div class="form-layout">
+        <div class="flex-item">
+          <lightning-input 
+            label="FFIR Number"
+            type="text"
+            value={warrantyPrior.FFIR_Number__c}
+            onchange={handleFieldChange}
+            data-field="FFIR_Number__c">
+          </lightning-input>
+          <lightning-input
+            label="Standard Values, if any"
+            type="text"
+            value={warrantyPrior.Standard_Values__c}
+            onchange={handleFieldChange}
+            data-field="Standard_Values__c">
+          </lightning-input>
+
+        </div>
+        <div class="flex-item">
+          <lightning-input
+          label="Media"
+          type="text"
+          value={warrantyPrior.Media__c}
+          onchange={handleFieldChange}
+          data-field="Media__c">
+        </lightning-input>
+          <!-- <lightning-input 
+            label="Dealer Observation"
+            type="text"
+            value={warrantyPrior.Dealer_Observation__c}
+            onchange={handleFieldChange}
+            data-field="Dealer_Observation__c">
+          </lightning-input> -->
+          <lightning-input 
+            label="ASM Feedback"
+            type="text"
+            value={warrantyPrior.ASM_Feedback__c}
+            disabled
+            onchange={handleFieldChange}
+            data-field="ASM_Feedback__c">
+          </lightning-input>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="slds-m-top_medium slds-grid slds-grid_align-center">
+      <lightning-button 
+        label="Submit For Approval" 
+        variant="brand" 
+        onclick={handleSubmit}>
+      </lightning-button>
+    </div>
+  </div>
+</template>
