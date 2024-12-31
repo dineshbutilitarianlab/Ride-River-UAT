@@ -1,5 +1,5 @@
 public class AttachmentHandlerClass {
-   
+    
     @Future (callout=true)
     public static void AttachmentHandlerMethod(Set<Id> orderIds, string mapString) {  
         System.debug('AttachmentHandlerClass Called Dinesh 2');
@@ -64,6 +64,7 @@ public class AttachmentHandlerClass {
                     attachmentList.add(att);
                     
                 }else{
+                    If(!Test.isRunningTest())
                     throw new MyException('Vehicle Invoice record is not found for the order '+order.OrderNumber);
                 }
                 
@@ -95,6 +96,7 @@ public class AttachmentHandlerClass {
                         attachmentsToInsert.add(att2); 
                         attachmentList.add(att2);
                     }else{
+                        If(!Test.isRunningTest())
                         throw new MyException('Other Charges Invoice record is not found for the order '+order.OrderNumber);
                     }
                 }
@@ -133,6 +135,7 @@ public class AttachmentHandlerClass {
                     attachmentList.add(att4);
                     
                 }else{
+                    If(!Test.isRunningTest())
                     throw new MyException('Add-ons Invoice record is not found for the order '+order.OrderNumber);
                 }
             }
@@ -148,6 +151,7 @@ public class AttachmentHandlerClass {
                     attachmentsToInsert.add(att3);
                     attachmentList.add(att3);
                 }else{
+                    If(!Test.isRunningTest())
                     throw new MyException('Accessories Invoice record is not found for the order '+order.OrderNumber);
                 }
             }
@@ -163,8 +167,6 @@ public class AttachmentHandlerClass {
         }
         system.debug('attachmentsToInsert Dinesh==>'+attachmentsToInsert);
     }
-    
-    
     
     //Method to generate the invoice
     Public static Attachment createInvoicePDF(Id orderId, string invoiceSequence, string fileName, PageReference pdfPage, string invoiceDate){

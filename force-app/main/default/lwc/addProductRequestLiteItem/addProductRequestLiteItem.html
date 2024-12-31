@@ -1,14 +1,14 @@
 <template>
-    
+   
     <lightning-quick-action-panel header="">
         <lightning-card title="Add Product Request Line Item" icon-name="standard:product_request">
             <template if:true={showSpinner}>
                 <lightning-spinner></lightning-spinner>
             </template>
             <div class="slds-p-around_medium">
-                <lightning-input 
-                    type="text" 
-                    placeholder="Search by Product Name..." 
+                <lightning-input
+                    type="text"
+                    placeholder="Search by Product Name..."
                     onchange={handleSearchInput}
                     class="slds-m-bottom_medium">
                 </lightning-input>
@@ -31,11 +31,11 @@
                                         <lightning-input type="checkbox" data-id={item.Id} checked={item.selected} onchange={handleCheckboxChange}></lightning-input>
                                     </td>
                                     <td>{item.ProductName}</td>
-                                    <td>{item.HSNCode}</td>
+                                    <td>{item.ProductCode}</td>
                                     <td>
                                         <lightning-input type="number" data-id={item.Id} value={item.AllocatedQuantity} disabled={item.isChargesDisabled} style="margin-bottom:14px"></lightning-input>
                                     </td>
-                                    
+                                   
                                 </tr>
                             </template>
                         </tbody>
@@ -61,19 +61,19 @@
                                 <template for:each={selectedItems} for:item="item">
                                     <tr key={item.Id}>
                                         <td>{item.ProductName}</td>
-                                        <td>{item.HSNCode}</td>
-                                        <td><lightning-input 
-                                            type="number" 
-                                            data-id={item.Id} 
-                                            value={item.AllocatedQuantity} 
+                                        <td>{item.ProductCode}</td>
+                                        <td><lightning-input
+                                            type="number"
+                                            data-id={item.Id}
+                                            value={item.AllocatedQuantity}
                                             onchange={handleQuantityChange}
                                             style="margin-bottom:14px">
                                         </lightning-input></td>
-                                        <td> <lightning-button 
-                                            icon-name="utility:delete" 
-                                            alternative-text="Delete" 
-                                            onclick={handleDeleteSelectedItem} 
-                                            data-id={item.Id} 
+                                        <td> <lightning-button
+                                            icon-name="utility:delete"
+                                            alternative-text="Delete"
+                                            onclick={handleDeleteSelectedItem}
+                                            data-id={item.Id}
                                             size="small"
                                             variant="destructive"
                                             class="slds-m-left_x-small"
@@ -83,16 +83,16 @@
                                 </template>
                             </tbody>
                         </table>
-
+ 
                     </div>
-                    
+                   
                 </template>
             </div>
             <center>
                 <lightning-button label="Cancel" variant="destructive" onclick={closeModal} class="slds-m-right_medium"></lightning-button>
-                <lightning-button label="Submit" variant="brand" onclick={handleUpdateProcess}></lightning-button>
+                <lightning-button label="Submit" variant="brand" onclick={methodToCreatePORecords}></lightning-button>
             </center>
         </lightning-card>
     </lightning-quick-action-panel>
-    
+   
 </template>

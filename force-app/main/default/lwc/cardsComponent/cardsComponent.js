@@ -1,12 +1,15 @@
-import { LightningElement, wire, track } from 'lwc';
-import No_Lead_img from "@salesforce/resourceUrl/No_Lead_img";
+import fetchOnLoadData from '@salesforce/apex/cardsComponentController.fetchOnLoadData';
 import No_Job_Card_img from "@salesforce/resourceUrl/No_Job_Card_img";
+import No_Lead_img from "@salesforce/resourceUrl/No_Lead_img";
 import No_Purchase_Order_img from "@salesforce/resourceUrl/No_Purchase_Order_img";
 import No_cases_img from "@salesforce/resourceUrl/No_cases_img";
 import Id from '@salesforce/user/Id';
-import fetchOnLoadData from '@salesforce/apex/cardsComponentController.fetchOnLoadData';
+// import allTask from 'c/allTasksRelateToUser';
+// import AddPoPaymments from 'c/bulkInsertPoPayments1';
 import MyPopup from 'c/createPurchaseOrderForm';
-import AddPoPaymments from 'c/bulkInsertPoPayments1';
+import navigateToCasesURL from '@salesforce/label/c.navigateToCasesURL';
+import navigateToJobCardsURL from '@salesforce/label/c.navigateToJobCardsURL';
+import { LightningElement, track } from 'lwc';
 
 export default class CardsComponent extends LightningElement {
     NoLeadimg = No_Lead_img;
@@ -17,6 +20,8 @@ export default class CardsComponent extends LightningElement {
     @track role;
     error;
     @track isDisabled = true;
+    navigateToCasesURL = navigateToCasesURL;
+    navigateToJobCardsURL = navigateToJobCardsURL;
 
     connectedCallback(){
         debugger;
@@ -34,8 +39,8 @@ export default class CardsComponent extends LightningElement {
         debugger;
         console.log('userId ---> '+this.userId);
         const result = await MyPopup.open({
-            size: 'large', // 'small', 'medium', 'large'
-            description: 'This is a modal popup', // Description for accessibility
+            size: 'large',
+            description: 'This is a modal popup',
         });
 
         if (result === 'close') {
@@ -43,30 +48,42 @@ export default class CardsComponent extends LightningElement {
         }
        
     }
+    // async navigateToTask() {
+    //     debugger;
+    //     const result1 = await allTask.open({
+    //         size: 'large', 
+    //         description: 'This is a modal popup', 
+    //     });
 
-    async navigateToAddPoPayments() {
-        debugger;
-        console.log('Navigating to Add PO Payments');
-        const result = await AddPoPaymments.open({
-            size: 'large',
-            description: 'This is a modal popup for Add PO Payments', 
-        });
+    //     if (result1 === 'close') {
+    //         console.log('Popup closed');
+    //     }
+    // }
 
-        if (result === 'close') {
-            console.log('Add PO Payments popup closed');
-        }
-    }
+    // async navigateToAddPoPayments() {
+    //     debugger;
+    //     console.log('Navigating to Add PO Payments');
+    //     const result = await AddPoPaymments.open({
+    //         size: 'large',
+    //         description: 'This is a modal popup for Add PO Payments', 
+    //     });
+
+    //     if (result === 'close') {
+    //         console.log('Add PO Payments popup closed');
+    //     }
+    // }
     navigateToJobCards() {
         window.open(
-            'https://rivermobilityprivatelimited2--rruat.sandbox.my.site.com/autocloudSite/s/job-card',
+            this.navigateToJobCardsURL,
             '_blank'
         );
     }
 
     navigateToCases() {
         window.open(
-            'https://rivermobilityprivatelimited2--rruat.sandbox.my.site.com/autocloudSite/s/case/Case/Default',
+            this.navigateToCasesURL,
             '_blank'
         );
     }
+    
 }

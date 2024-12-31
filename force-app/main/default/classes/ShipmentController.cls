@@ -56,8 +56,6 @@ public with sharing class ShipmentController {
         }
     }
 
-    
-
     @AuraEnabled
     public static void updateExistingOrderStatus(Id orderId){
         try {
@@ -71,7 +69,15 @@ public with sharing class ShipmentController {
 
         orderToUpdate.Status = 'Invoice Generation'; 
         update orderToUpdate;
-        //Invoice Generation
+        // Invoice Generation
+
+        // if (orderToUpdate.Status != 'Preparing Dispatch' && orderToUpdate.Status != 'Dispatch') {
+        //     orderToUpdate.Status = 'Invoice Generation';
+         //   update orderToUpdate;
+        //     System.debug('Order status updated to Invoice Generation');
+        // } else {
+        //     System.debug('Order status not updated because it is in ' + orderToUpdate.Status);
+        // }
             
         } catch (Exception e) {
              System.debug('Error updating Order Status: ' + e.getMessage());
@@ -79,61 +85,189 @@ public with sharing class ShipmentController {
         }
     }
 
+    @AuraEnabled
+    public static Id createShipment(String orderId, Shipment shipment) {
+        System.debug('Order ID received in Apex: ' + orderId);
+        shipment.Order__c = orderId;
+        shipment.Status = 'Invoice Generation';
 
+        Id hardcodedSourceLocationId = System.Label.Default_River_Warehouse;
 
-@AuraEnabled
-public static Id createShipment(Id orderId, Shipment shipment) {
-    System.debug('Order ID received in Apex: ' + shipment.Order__c);
-    shipment.Order__c = orderId;
+        try {
+            // Fetch the Purchase Order ID from the Order
+            Order orderRecord = [
+                SELECT Purchase_Order__c, Status
+                FROM Order 
+                WHERE Id = :orderId 
+                LIMIT 1
+            ];
 
-    // Hardcoded Source Location ID
-    Id hardcodedSourceLocationId = '131F4000000Cv5UIAS';
+            // Ensure the Purchase Order ID is not null
+            Id purchaseOrderId = orderRecord.Purchase_Order__c;
+            if (purchaseOrderId == null) {
+                throw new AuraHandledException('The Order does not have an associated Purchase Order.');
+            }
+            
+            // Fetch the Destination Location from the Purchase Order
+            ProductRequest purchaseOrder = [
+                SELECT Destination_Location__c 
+                FROM ProductRequest 
+                WHERE Id = :purchaseOrderId
+                LIMIT 1
+            ];
 
-    try {
-        // Fetch the Purchase Order ID from the Order
-        Order orderRecord = [
-            SELECT Purchase_Order__c
-            FROM Order 
-            WHERE Id = :orderId 
-            LIMIT 1
-        ];
+            // Ensure the Destination Location is not null
+            Id destinationLocationId = purchaseOrder.Destination_Location__c;
+            if (destinationLocationId == null) {
+                throw new AuraHandledException('The Purchase Order does not have a Destination Location.');
+            }
 
-        // Ensure the Purchase Order ID is not null
-        Id purchaseOrderId = orderRecord.Purchase_Order__c;
-        if (purchaseOrderId == null) {
-            throw new AuraHandledException('The Order does not have an associated Purchase Order.');
+            // Set the hardcoded Source Location and dynamic Destination Location
+            shipment.SourceLocationId = hardcodedSourceLocationId;
+            shipment.DestinationLocationId = destinationLocationId;
+
+            insert shipment;
+
+            // if (orderRecord.Status == 'Preparing Dispatch' || orderRecord.Status == 'Dispatch') {
+            //     // updateExistingOrderStatus(orderId);
+            //     System.debug('Order in if ---> '+orderRecord.Status);
+            // } 
+            // // else if(orderRecord.Status == 'Dispatch'){
+            // //     // updateExistingOrderStatus(orderId);
+            // // }
+            // else {
+            //     updateExistingOrderStatus(orderId);
+            //     System.debug('Order in else ---> '+orderRecord.Status);
+            //     // System.debug('Skipped updateExistingOrderStatus for status: ' + orderRecord.Status);
+            // }
+
+            System.debug('Inserted Shipment: ' + shipment);
+            System.debug('Shipment Id::::' + shipment.Id);
+            return shipment.Id;
+        } catch (Exception e) {
+            System.debug('Error creating Shipment: ' + e.getMessage());
+            throw new AuraHandledException('Error creating Shipment: ' + e.getMessage());
         }
-        
-
-        // Fetch the Destination Location from the Purchase Order
-        ProductRequest purchaseOrder = [
-            SELECT Destination_Location__c 
-            FROM ProductRequest 
-            WHERE Id = :purchaseOrderId
-            LIMIT 1
-        ];
-
-        // Ensure the Destination Location is not null
-        Id destinationLocationId = purchaseOrder.Destination_Location__c;
-        if (destinationLocationId == null) {
-            throw new AuraHandledException('The Purchase Order does not have a Destination Location.');
-        }
-
-        // Set the hardcoded Source Location and dynamic Destination Location
-        shipment.SourceLocationId = hardcodedSourceLocationId;
-        shipment.DestinationLocationId = destinationLocationId;
-
-        insert shipment;
-        updateExistingOrderStatus(orderId);
-
-        System.debug('Inserted Shipment: ' + shipment);
-        System.debug('Shipment Id::::' + shipment.Id);
-        return shipment.Id;
-    } catch (Exception e) {
-        System.debug('Error creating Shipment: ' + e.getMessage());
-        throw new AuraHandledException('Error creating Shipment: ' + e.getMessage());
     }
-}
+
+
+    // @AuraEnabled
+    // public static void updateExistingOrderStatus(Id orderId) {
+    //     try {
+    //         // Query the order and its current status
+    //         Order orderToUpdate = [
+    //             SELECT Id, Status
+    //             FROM Order
+    //             WHERE Id = :orderId
+    //             LIMIT 1
+    //         ];
+
+    //         // Fetch all picklist values for the Status field
+    //         List<String> statusPicklistValues = new List<String>();
+    //         for (PicklistValueInfo picklist : [ 
+    //             SELECT Label, Value 
+    //             FROM PicklistValueInfo 
+    //             WHERE EntityParticle.EntityDefinition.QualifiedApiName = 'Order' 
+    //             AND EntityParticle.DeveloperName = 'Status' 
+    //             AND IsActive = true
+    //         ]) {
+    //             statusPicklistValues.add(picklist.Value);
+    //         }
+
+    //         // Check if the current status is 'Preparing Dispatch' or 'Dispatch'
+    //         if (orderToUpdate.Status == 'Preparing Dispatch' || orderToUpdate.Status == 'Dispatch') {
+    //             System.debug('Skipped updating Order Status because it is in: ' + orderToUpdate.Status);
+    //             return;
+    //         }
+
+    //         // Check if the current status is valid for update and update to 'Invoice Generation'
+    //         if (statusPicklistValues.contains('Invoice Generation')) {
+    //             orderToUpdate.Status = 'Invoice Generation';
+    //             update orderToUpdate;
+    //             System.debug('Order status updated to Invoice Generation');
+    //         } else {
+    //             System.debug('Invoice Generation is not a valid picklist value for Order Status');
+    //         }
+
+    //     } catch (Exception e) {
+    //         System.debug('Error updating Order Status: ' + e.getMessage());
+    //         throw new AuraHandledException('Error updating Order Status: ' + e.getMessage());
+    //     }
+    // }
+
+    // @AuraEnabled
+    // public static Id createShipment(Id orderId, Shipment shipment) {
+    //     System.debug('Order ID received in Apex: ' + shipment.Order__c);
+    //     shipment.Order__c = orderId;
+    //     shipment.Status = 'Invoice Generation';
+
+    //     Id hardcodedSourceLocationId = '131F4000000Cv5UIAS';
+
+    //     try {
+    //         // Fetch the current Order details
+    //         Order orderRecord = [
+    //             SELECT Purchase_Order__c, Status
+    //             FROM Order 
+    //             WHERE Id = :orderId 
+    //             LIMIT 1
+    //         ];
+
+
+    //         // Ensure the Purchase Order ID is not null
+    //         Id purchaseOrderId = orderRecord.Purchase_Order__c;
+    //         if (purchaseOrderId == null) {
+    //             throw new AuraHandledException('The Order does not have an associated Purchase Order.');
+    //         }
+
+    //         // Fetch the Destination Location from the Purchase Order
+    //         ProductRequest purchaseOrder = [
+    //             SELECT Destination_Location__c 
+    //             FROM ProductRequest 
+    //             WHERE Id = :purchaseOrderId
+    //             LIMIT 1
+    //         ];
+
+    //         // Ensure the Destination Location is not null
+    //         Id destinationLocationId = purchaseOrder.Destination_Location__c;
+    //         if (destinationLocationId == null) {
+    //             throw new AuraHandledException('The Purchase Order does not have a Destination Location.');
+    //         }
+
+    //         // Set the hardcoded Source Location and dynamic Destination Location
+    //         shipment.SourceLocationId = hardcodedSourceLocationId;
+    //         shipment.DestinationLocationId = destinationLocationId;
+
+    //         insert shipment;
+
+    //         // Fetch all picklist values for the Status field
+    //         List<String> statusPicklistValues = new List<String>();
+    //         for (PicklistValueInfo picklist : [ 
+    //             SELECT Label, Value 
+    //             FROM PicklistValueInfo 
+    //             WHERE EntityParticle.EntityDefinition.QualifiedApiName = 'Order' 
+    //             AND EntityParticle.DeveloperName = 'Status' 
+    //             AND IsActive = true
+    //         ]) {
+    //             statusPicklistValues.add(picklist.Value);
+    //         }
+
+    //         // Decide whether to update the status
+    //         if (orderRecord.Status != 'Preparing Dispatch' && 
+    //             orderRecord.Status != 'Dispatch' &&
+    //             statusPicklistValues.contains('Invoice Generation')) {
+    //             updateExistingOrderStatus(orderId);
+    //         } else {
+    //             System.debug('Skipped updateExistingOrderStatus for status: ' + orderRecord.Status);
+    //         }
+
+    //         System.debug('Inserted Shipment: ' + shipment);
+    //         System.debug('Shipment Id::::' + shipment.Id);
+    //         return shipment.Id;
+    //     } catch (Exception e) {
+    //         System.debug('Error creating Shipment: ' + e.getMessage());
+    //         throw new AuraHandledException('Error creating Shipment: ' + e.getMessage());
+    //     }
+    // }
 
 
     @AuraEnabled
@@ -143,26 +277,32 @@ public static Id createShipment(Id orderId, Shipment shipment) {
         System.debug('orderProductIds: ' + orderProductIds);
         System.debug('quantities: ' + quantities);
 
-    try {
-        List<ShipmentItem> shipmentItems = new List<ShipmentItem>();
-        for (Integer i = 0; i < orderProductIds.size(); i++) {
-            OrderItem oi = [
-                SELECT Id, Product2Id
-                FROM OrderItem
-                WHERE Id = :orderProductIds[i]
-                LIMIT 1
-            ];
-            shipmentItems.add(new ShipmentItem(
-                ShipmentId = shipmentId,
-                Product2Id = oi.Product2Id,
-                Quantity = quantities[i]
-            ));
+        try {
+            List<ShipmentItem> shipmentItems = new List<ShipmentItem>();
+            for (Integer i = 0; i < orderProductIds.size(); i++) {
+                OrderItem oi = [
+                    SELECT Id, Product2Id, Is_VOR__c, UnitPrice, SGST__c, CGST__c, IGST__c
+                    FROM OrderItem
+                    WHERE Id = :orderProductIds[i]
+                    LIMIT 1
+                ];
+                shipmentItems.add(new ShipmentItem(
+                    ShipmentId = shipmentId,
+                    Product2Id = oi.Product2Id,
+                    Quantity = quantities[i],
+                    Parent_Shipment__c = shipmentId,
+                    Is_VOR__c = oi.Is_VOR__c,
+                    Unit_Price__c = oi.UnitPrice,
+                    SGST__c = oi.SGST__c,
+                    CGST__c = oi.CGST__c,
+                    IGST__c = oi.IGST__c
+                ));
+            }
+            insert shipmentItems;
+        } catch (Exception e) {
+            throw new AuraHandledException('Error creating Shipment Items: ' + e.getMessage());
         }
-        insert shipmentItems;
-    } catch (Exception e) {
-        throw new AuraHandledException('Error creating Shipment Items: ' + e.getMessage());
     }
-}
 
 
 }

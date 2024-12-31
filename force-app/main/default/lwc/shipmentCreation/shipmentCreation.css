@@ -18,3 +18,50 @@
     width: 70%; /* Ensure combobox takes full width */
     max-width: 300px; /* Optional: Set a maximum width for the combobox */
 }
+
+.contact-details-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: rgb(252, 117, 76);
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    color: #333;
+}
+
+.contact-icon {
+    margin-right: 0.5rem;
+    color: #0070d2;
+}
+
+.contact-email {
+    color: #0070d2;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.contact-email:hover {
+    text-decoration: underline;
+}
+
+.no-details-container {
+    padding: 1rem;
+    background-color: #fef2f2;
+    border: 1px solid #f5c6cb;
+    border-radius: 0.25rem;
+    text-align: center;
+}
+
+.no-details {
+    color: #d9534f;
+    font-size: 1rem;
+    font-weight: bold;
+}

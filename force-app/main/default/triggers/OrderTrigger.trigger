@@ -1,4 +1,4 @@
-Trigger OrderTrigger on Order (before insert, after update) {
+Trigger OrderTrigger on Order (before insert, after update, after insert, before update) {
     // OrderCounter__c counterSetting = OrderCounter__c.getInstance('Count');
     // if (counterSetting != null) {
     //     Decimal baseCounter = counterSetting.Counter__c;
@@ -33,6 +33,8 @@ Trigger OrderTrigger on Order (before insert, after update) {
 
     if (Trigger.isAfter && Trigger.isUpdate) {
         OrderTriggerHandler.handleOrderUpdate(Trigger.new, Trigger.oldMap);
-        OrderTriggerHandler.createProductTransfer(Trigger.new, Trigger.oldMap);
+        //OrderTriggerHandler.createProductTransfer(Trigger.new, Trigger.oldMap);
+        OrderTriggerHandler.createProductTransferForBackOrder(Trigger.oldMap, Trigger.newMap);
+
     }
 }

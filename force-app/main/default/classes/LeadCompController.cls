@@ -71,7 +71,7 @@ public  class LeadCompController {
         }
         
         //List<Follow_Up__c> Flist = [select Id,Due_Date__c,Lead__c,Lead__r.Name,Lead__r.Phone__c,Status__c,Subject__c,Lead__r.Lead_Age__c,Follow_Up__c,Folllow_Up1_Summary__c,Previous_Followup_date__c,Previous_Feedback__c,Feedback__c from Follow_Up__c where  Follow_Up_Date__c= TODAY AND Status__c!='Completed' and Lead__r.isConverted = false AND Lead__r.Status !='close lost' AND Lead__r.Status !='Test Ride' AND Lead__r.Lead_Age__c <= 21  ORDER BY CreatedDate DESC];
-        List<Follow_Up__c> Flist = [select Id,Due_Date__c,Lead__c,Lead__r.Name,Lead__r.Phone__c,Status__c,Subject__c,Lead__r.Lead_Age__c,Follow_Up__c,Previous_Followup_date__c,Previous_Feedback__c,Feedback__c,Lead__r.City,Lead__r.State,Lead__r.Country,Lead__r.PostalCode,Lead__r.Street from Follow_Up__c where  Follow_Up_Date__c = TODAY AND Status__c!='Completed' and Lead__r.isConverted = false AND Lead__r.Status !='close lost' AND Lead__r.Status !='Test Ride'  ORDER BY CreatedDate DESC];
+        List<Follow_Up__c> Flist = [select Id,Due_Date__c,Lead__c,Lead__r.Name,Lead__r.Phone,Status__c,Subject__c,Lead__r.Lead_Age__c,Follow_Up__c,Previous_Followup_date__c,Previous_Feedback__c,Feedback__c,Lead__r.City,Lead__r.State,Lead__r.Country,Lead__r.PostalCode,Lead__r.Street from Follow_Up__c where  Follow_Up_Date__c = TODAY AND Status__c!='Completed' and Lead__r.isConverted = false AND Lead__r.Status !='close lost'   ORDER BY CreatedDate DESC];
         
         
         Set<Id> setLeadID = new Set<Id>(); 

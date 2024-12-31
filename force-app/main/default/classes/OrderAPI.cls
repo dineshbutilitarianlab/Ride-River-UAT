@@ -110,6 +110,7 @@ global with sharing class OrderAPI {
             
             // Create a Standard Order record
             Order standardOrder = new Order(
+                recordTypeid = SObjectType.Order.getRecordTypeInfosByDeveloperName().get('Vehicle').getRecordTypeId(),
                 AccountId = (String)requestMap.get('crm_account_id'),
                 Dealer__c = seller[0].Id,
                 Website_Order_Id__c = (String)requestMap.get('order_id'),

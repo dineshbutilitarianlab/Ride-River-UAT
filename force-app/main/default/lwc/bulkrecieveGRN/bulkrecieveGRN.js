@@ -2,11 +2,14 @@
  * @author Dinesh Baddawar
  * @email dinesh.butilitarianlab@gmail.com
  * @create date 2024-12-10 11:00:42
- * @modify date 2024-12-17 14:31:32
+ * @modify date 2024-12-20 20:38:52
  * @desc [Component to update Receive GRN]
  */
 
 import getPOrelatedPLI from '@salesforce/apex/ProductRequestLineController.getPOrelatedPLI';
+import getShipmentDetail from '@salesforce/apex/ProductRequestLineController.getShipmentDetail';
+import { CurrentPageReference } from 'lightning/navigation';
+
 import TransferReceiveGRNToProductTransfer from '@salesforce/apex/ProductRequestLineController.TransferReceiveGRNToProductTransfer';
 import { CloseActionScreenEvent } from 'lightning/actions';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
@@ -17,35 +20,96 @@ export default class BulkrecieveGRN extends LightningElement {
     @track updatedValues = new Map(); 
     @track selectAllChecked = false; 
     showSpinner = false;
+    ShowGRNDone = false;
     connectedCallback(){
         this.recordId = this.recordId;
+        if (this.recordId == undefined) {
+            let params = location.search
+            const urlParams = new URLSearchParams(params);
+            this.recordId = urlParams.get("recordId");
+        }
+        this.getShipmentDetailApex();
     }
 
-    @wire(getPOrelatedPLI, { recordId: '$recordId' })
-    wiredProductRequestItems({ error, data }) {
-        if (data) {
-            debugger;
-            this.requestLineItems = data.map((res) => ({
-                Id: res.Id,
-                Name: res.Product2?.Name,
-                ProductName: res.Product2?.Name || 'N/A',
-                Product2Id: res.Product2?.Id || null,
-                QuantityRequested: res.Quantity,
-                ShipmentId: res.ShipmentId,
-                DestinationLocationId : res.Shipment.DestinationLocationId,
-                SourceLocationId : res.Shipment.SourceLocationId,
-                RecievedQuantity : res.Received_Quantity__c,
-                selected: false,
-                isChargesDisabled: true,
-            }));
-            this.showSpinner = false;
-            this.error = undefined;
-        } else if (error) {
-            this.error = error;
-            this.requestLineItems = [];
-            console.error('Error fetching product request items == >', error);
+
+    @wire(CurrentPageReference)
+    getCurrentPageReference(currentPageReference) {
+        debugger;
+        if (currentPageReference) {
+            // Extract the recordId from the URL
+            if(currentPageReference.attributes.recordId != undefined){
+                this.recordId = currentPageReference.attributes.recordId;
+            }
         }
     }
+
+    getShipmentDetailApex(){
+        debugger;
+        getShipmentDetail({recordId : this.recordId}) .then(result =>{
+            if(result != null){
+                if(result.Status =='Delivered'){
+                    this.ShowGRNDone = true;
+                }else{
+                    this.ShowGRNDone = false;
+                    this.CallDetailsMethod();
+                }
+            }
+        })
+    }
+
+    CallDetailsMethod(){
+        debugger;
+        getPOrelatedPLI({recordId : this.recordId}).then(data =>{
+            if (data) {
+                debugger;
+                this.requestLineItems = data.map((res) => ({
+                    Id: res.Id,
+                    Name: res.Product2?.Name,
+                    ProductName: res.Product2?.Name || 'N/A',
+                    Product2Id: res.Product2?.Id || null,
+                    QuantityRequested: res.Quantity,
+                    ShipmentId: res.ShipmentId,
+                    DestinationLocationId : res.Shipment.DestinationLocationId,
+                    SourceLocationId : res.Shipment.SourceLocationId,
+                    RecievedQuantity : res.Received_Quantity__c,
+                    selected: false,
+                    isChargesDisabled: true,
+                }));
+                this.showSpinner = false;
+                this.error = undefined;
+            } else if (error) {
+                this.error = error;
+                this.requestLineItems = [];
+                console.error('Error fetching product request items == >', error);
+             }
+        })
+    }
+
+    // @wire(getPOrelatedPLI, { recordId: '$recordId' })
+    // wiredProductRequestItems({ error, data }) {
+    //     if (data) {
+    //         debugger;
+    //         this.requestLineItems = data.map((res) => ({
+    //             Id: res.Id,
+    //             Name: res.Product2?.Name,
+    //             ProductName: res.Product2?.Name || 'N/A',
+    //             Product2Id: res.Product2?.Id || null,
+    //             QuantityRequested: res.Quantity,
+    //             ShipmentId: res.ShipmentId,
+    //             DestinationLocationId : res.Shipment.DestinationLocationId,
+    //             SourceLocationId : res.Shipment.SourceLocationId,
+    //             RecievedQuantity : res.Received_Quantity__c,
+    //             selected: false,
+    //             isChargesDisabled: true,
+    //         }));
+    //         this.showSpinner = false;
+    //         this.error = undefined;
+    //     } else if (error) {
+    //         this.error = error;
+    //         this.requestLineItems = [];
+    //         console.error('Error fetching product request items == >', error);
+    //      }
+    //  }
 
       handleInputChange(event) {
         debugger;

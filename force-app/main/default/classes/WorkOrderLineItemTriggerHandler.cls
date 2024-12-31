@@ -1,5 +1,5 @@
 public class WorkOrderLineItemTriggerHandler {
-
+    
     public static void handleInsert(List<WorkOrderLineItem> workOrderLineItems) {
         // Step 1: Collect WorkOrder IDs from WorkOrderLineItems
         Set<Id> workOrderIds = new Set<Id>();
@@ -13,7 +13,7 @@ public class WorkOrderLineItemTriggerHandler {
             }
         }
         System.debug('WorkOrder IDs: ' + workOrderIds);
-    
+        
         // Step 2: Query existing Warranty Priors related to WorkOrder IDs
         Map<Id, Warranty_Prior__c> existingWarrantyMap = new Map<Id, Warranty_Prior__c>(
             [SELECT Id, Job_Card__c, Total_Claim_Amount__c 
@@ -21,29 +21,29 @@ public class WorkOrderLineItemTriggerHandler {
              WHERE Job_Card__c IN :workOrderIds]
         );
         System.debug('Existing Warranties: ' + existingWarrantyMap);
-    
+        
         // Step 3: Create new warranties for WorkOrders without an existing warranty
         List<Warranty_Prior__c> newWarranties = new List<Warranty_Prior__c>();
         Map<Id, Id> workOrderToWarrantyMap = new Map<Id, Id>();
-    
+        
         // Map existing warranties
         for (Warranty_Prior__c warranty : existingWarrantyMap.values()) {
             workOrderToWarrantyMap.put(warranty.Job_Card__c, warranty.Id);
         }
-
+        
         // Prepare new warranties for missing WorkOrders
         if (!workOrderIds.isEmpty()) {
             Map<Id, WorkOrder> workOrderMap = new Map<Id, WorkOrder>(
                 [SELECT Id,
-                        Vehicle__c,
-                        Odometer_Reading__c,
-                        Vehicle_Registration_Number__c,
-                        Vehicle__r.EngineNumber,
-                        Vehicle__r.VehicleIdentificationNumber
+                 Vehicle__c,
+                 Odometer_Reading__c,
+                 Vehicle_Registration_Number__c,
+                 Vehicle__r.EngineNumber,
+                 Vehicle__r.VehicleIdentificationNumber
                  FROM WorkOrder
                  WHERE Id IN :workOrderIds]
             );
-
+            
             for (WorkOrderLineItem item : workOrderLineItems) {
                 if (item.WorkOrderId != null && !workOrderToWarrantyMap.containsKey(item.WorkOrderId)) {
                     WorkOrder relatedWorkOrder = workOrderMap.get(item.WorkOrderId);
@@ -63,7 +63,7 @@ public class WorkOrderLineItemTriggerHandler {
                 }
             }
         }
-
+        
         if (!newWarranties.isEmpty()) {
             insert newWarranties;
             for (Warranty_Prior__c warranty : newWarranties) {
@@ -71,9 +71,9 @@ public class WorkOrderLineItemTriggerHandler {
                 warrantyPriorIds.add(warranty.Id);
             }
         }
-
+        
         System.debug('WorkOrder to Warranty Map: ' + workOrderToWarrantyMap);
-
+        
         // Step 4: Update WorkOrderLineItems with the associated warranties
         List<WorkOrderLineItem> workOrderLineItemsToUpdate = new List<WorkOrderLineItem>();
         for (WorkOrderLineItem item : workOrderLineItems) {
@@ -85,19 +85,19 @@ public class WorkOrderLineItemTriggerHandler {
                 workOrderLineItemsToUpdate.add(updatedItem);
             }
         }
-
+        
         if (!workOrderLineItemsToUpdate.isEmpty()) {
             update workOrderLineItemsToUpdate;
         }
-
+        
         System.debug('Updated WorkOrderLineItems: ' + workOrderLineItemsToUpdate);
-
+        
         // Step 5: Update Total Claimed Amount on Warranty Priors
         if (!warrantyPriorIds.isEmpty()) {
             updateWarrantyTotalClaimedAmount(warrantyPriorIds);
         }
     }
-
+    
     public static void handleUpdate(List<WorkOrderLineItem> workOrderLineItems, Map<Id, WorkOrderLineItem> oldMap) {
         // Step 1: Collect Warranty Prior IDs for updated items
         Set<Id> warrantyPriorIds = new Set<Id>();
@@ -110,7 +110,7 @@ public class WorkOrderLineItemTriggerHandler {
                 warrantyPriorIds.add(oldItem.Warranty_Prior__c);
             }
         }
-
+        
         // Step 2: Update Total Claimed Amount on Warranty Priors
         if (!warrantyPriorIds.isEmpty()) {
             updateWarrantyTotalClaimedAmount(warrantyPriorIds);
@@ -125,7 +125,7 @@ public class WorkOrderLineItemTriggerHandler {
                     warrantyPriorIds.add(item.Warranty_Prior__c);
                 }
             }
-
+            
             // Step 2: Update Total Claimed Amount on Warranty Priors
             if (!warrantyPriorIds.isEmpty()) {
                 updateWarrantyTotalClaimedAmount(warrantyPriorIds);
@@ -135,11 +135,11 @@ public class WorkOrderLineItemTriggerHandler {
             throw e;
         }
     }
-
+    
     private static void updateWarrantyTotalClaimedAmount(Set<Id> warrantyPriorIds) {
         try {
             System.debug('Warranty Prior IDs for Total Claimed Amount Update: ' + warrantyPriorIds);
-        
+            
             // Step 1: Aggregate TotalAmount__c from WorkOrderLineItems
             Map<Id, Decimal> warrantyToTotalAmountMap = new Map<Id, Decimal>();
             List<AggregateResult> aggregateResults = [
@@ -148,25 +148,25 @@ public class WorkOrderLineItemTriggerHandler {
                 WHERE Warranty_Prior__c IN :warrantyPriorIds
                 GROUP BY Warranty_Prior__c
             ];
-        
+            
             System.debug('Aggregate Results for TotalAmount__c: ' + aggregateResults);
-        
+            
             for (AggregateResult result : aggregateResults) {
                 warrantyToTotalAmountMap.put(
                     (Id) result.get('Warranty_Prior__c'),
                     (Decimal) result.get('totalAmount')
                 );
             }
-        
+            
             System.debug('Map of Warranty Prior to Total Amount: ' + warrantyToTotalAmountMap);
-        
+            
             // Step 2: Update Warranty Prior records
             List<Warranty_Prior__c> warrantiesToUpdate = new List<Warranty_Prior__c>();
             for (Id warrantyId : warrantyPriorIds) {
                 if (warrantyId != null) { // Ensure warrantyId is not null
                     Decimal totalAmount = warrantyToTotalAmountMap.get(warrantyId) != null ? warrantyToTotalAmountMap.get(warrantyId) : 0;
                     System.debug('Warranty ID: ' + warrantyId + ', Total Amount: ' + totalAmount);
-        
+                    
                     warrantiesToUpdate.add(new Warranty_Prior__c(
                         Id = warrantyId,
                         Total_Claim_Amount__c = totalAmount
@@ -175,7 +175,7 @@ public class WorkOrderLineItemTriggerHandler {
                     System.debug('Skipping update for null Warranty ID.');
                 }
             }
-        
+            
             if (!warrantiesToUpdate.isEmpty()) {
                 System.debug('Warranties to Update: ' + warrantiesToUpdate);
                 update warrantiesToUpdate;
@@ -188,47 +188,4 @@ public class WorkOrderLineItemTriggerHandler {
         }
     }
     
-    
-
-
-
-// public static void handleUpdate(List<WorkOrderLineItem> workOrderLineItems, Map<Id, WorkOrderLineItem> oldMap) {
-//     // Step 1: Identify WorkOrderLineItems where WorkOrderId has changed
-//     Set<Id> changedWorkOrderIds = new Set<Id>();
-//     for (WorkOrderLineItem item : workOrderLineItems) {
-//         WorkOrderLineItem oldItem = oldMap.get(item.Id);
-//         if (item.WorkOrderId != oldItem.WorkOrderId) {
-//             changedWorkOrderIds.add(item.WorkOrderId);
-//             changedWorkOrderIds.add(oldItem.WorkOrderId);
-//         }
-//     }
-//     System.debug('Changed WorkOrder IDs: ' + changedWorkOrderIds);
-
-//     // Step 2: Query existing Warranty Priors for the changed WorkOrders
-//     Map<Id, Warranty_Prior__c> warrantyMap = new Map<Id, Warranty_Prior__c>(
-//         [SELECT Id, Job_Card__c FROM Warranty_Prior__c WHERE Job_Card__c IN :changedWorkOrderIds]
-//     );
-//     System.debug('Queried Warranty Priors: ' + warrantyMap);
-
-//     // Step 3: Update WorkOrderLineItems with the correct Warranty Prior
-//     List<WorkOrderLineItem> itemsToUpdate = new List<WorkOrderLineItem>();
-
-//     for (WorkOrderLineItem item : workOrderLineItems) {
-//         if (item.WorkOrderId == null) continue;
-
-//         // Get the correct Warranty Prior for the new WorkOrder
-//         Warranty_Prior__c warranty = warrantyMap.get(item.WorkOrderId);
-
-//         if (warranty != null) {
-//             item.Warranty_Prior__c = warranty.Id;
-//             itemsToUpdate.add(item);
-//         }
-//     }
-//     System.debug('Items to Update on Update: ' + itemsToUpdate);
-
-//     // Step 4: Update WorkOrderLineItems
-//     if (!itemsToUpdate.isEmpty()) {
-//         update itemsToUpdate;
-//     }
-// }
 }

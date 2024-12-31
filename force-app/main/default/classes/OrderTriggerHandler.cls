@@ -71,55 +71,172 @@ public class OrderTriggerHandler {
             System.debug('Error in createAssetsForOrders: ' + ex.getMessage());
         }
     }
-
-    public static void createProductTransfer(List<Order> newOrder,Map<Id,Order> oldMapOrder){
-        system.debug('code in');
+    
+   /* public static void createProductTransfer(List<Order> newOrderlist,Map<Id,Order> oldOrderMap){        
         try{
-            Set<Id> OrderIdSet = new Map<Id, Order>(newOrder).keySet();
-            
-            Map<Id,Shipment> shipmentMap = new Map<Id,Shipment>();//new code today
-            
-            Map<String,String> mapOrderIdPOId  = new Map<String,String>();
-            List<ProductTransfer> productTransfersToInsert = new List<ProductTransfer>();
-            List<Order> newOrderQueryList = [SELECT Id,Purchase_Order__c,Purchase_Order__r.Destination_Location__c,Status FROM Order WHERE Id IN:OrderIdSet];
-            if(newOrderQueryList.size()>0){
-                for(Order ord : newOrderQueryList){
-                    if(ord.status !=null && ord.Status == 'Activated' && oldMapOrder.get(ord.Id).Status !='Activated'){
-                    if(ord.Purchase_Order__r.Destination_Location__c != null){
-                        mapOrderIdPOId.put(ord.id,ord.Purchase_Order__r.Destination_Location__c);
-                        
-                    }else{
-                        System.debug('Location Not Found & Order == >'+ord);
+            Set<Id> orderIdsToProcess = new Set<Id>();
+            Map<Id,OrderItem> productNameMap = new Map<Id,OrderItem>();
+            Map<Id,Id> contactLocationMap = new Map<Id,Id>();
+            List<ProductTransfer> ptToInsert = new List<ProductTransfer>();
+            Set<Id> OrderIdSet = new Map<Id, Order>(newOrderlist).keySet();
+
+            if(!newOrderlist.isEmpty()){
+                for(Order o : [SELECT Id,status,Contact__c,Contact__r.Location__c From Order wHERE Id IN:OrderIdSet]){
+                    if(o.status !=null && o.Status == 'Activated' && oldOrderMap.get(o.Id).Status !='Activated'){
+                        orderIdsToProcess.add(o.Id);
+                    } if(o.Contact__c != null && !contactLocationMap.containsKey(o.Id)){
+                        contactLocationMap.put(o.Id,o.Contact__r.Location__c);
                     }
                 }
+            }
+            System.debug('contactLocationMap # 1 === >'+contactLocationMap);
+              System.debug('orderIdsToProcess # 1 === >'+orderIdsToProcess);
+            List<OrderItem> orderItemList = [Select id,OrderId,Product2Id from OrderItem where OrderId IN:orderIdsToProcess];
+            System.debug('orderItemList # 1 === >'+orderItemList);
+            for(OrderItem oItem : orderItemList){
+                if(!productNameMap.containsKey(oItem.Id)){
+                    productNameMap.put(oItem.id,oItem);
                 }
             }
-            system.debug('mapOrderIdPOId == >'+mapOrderIdPOId);
-            List<OrderItem> listOfOrderProducts = [Select id,OrderId from OrderItem where OrderId IN:OrderIdSet];
-            List<Shipment> shipmentList = [Select id,LR_Number__c,Driver_Phone__c,TotalItemsQuantity,Order__c from Shipment where Order__c IN:OrderIdSet];//today
-            for(Shipment s : shipmentList){
-                shipmentMap.put(s.Order__c,s);
-            }
-             system.debug('listOfOrderProducts == >'+listOfOrderProducts);
-            for(OrderItem oi : listOfOrderProducts){
+            System.debug('productNameMap === >'+productNameMap);
+            for(OrderItem oi : orderItemList){
                 ProductTransfer pt = new ProductTransfer();
-                pt.Order_Product__c = oi.Id;
-                pt.SourceLocationId=System.Label.Default_River_Warehouse;
-                pt.DestinationLocationId=mapOrderIdPOId.get(oi.OrderId);
+                pt.LR_Number__c='NA';
+                pt.Order__c=oi.OrderId;
+                pt.Order_Product__c=oi.Id;
+                pt.Driver_Phone__c='NA';
                 pt.RecordTypeId= SObjectType.ProductTransfer.getRecordTypeInfosByDeveloperName().get('Transfer').getRecordTypeId();
-                pt.QuantitySent=90;//Harcoded for now
-                pt.Driver_Phone__c= shipmentMap.get(oi.OrderId).Driver_Phone__c != null ? shipmentMap.get(oi.OrderId).Driver_Phone__c : '';
-                pt.LR_Number__c= shipmentMap.get(oi.OrderId).LR_Number__c != null ? shipmentMap.get(oi.OrderId).LR_Number__c : 'NA';
-                pt.Order__c=shipmentMap.get(oi.OrderId).Order__c;
-                productTransfersToInsert.add(pt);
+                pt.SourceLocationId=System.label.Default_River_Warehouse;
+                pt.DestinationLocationId=contactLocationMap.get(oi.OrderId);
+                pt.QuantitySent=0.0;
+                pt.Product2Id=productNameMap.get(oi.Id).Product2Id;
+                ptToInsert.add(pt);
             }
-            if(!productTransfersToInsert.isEmpty()){
-                insert productTransfersToInsert;
-                system.debug('productTransfersToInsert == >'+productTransfersToInsert);
+            if(!ptToInsert.isEmpty()){
+                insert ptToInsert;
+                System.debug('ptToInsert ===>'+ptToInsert);
             }
         }
         catch(Exception e){
-            System.debug('error occured ====>'+e.getMessage()+'Error occured in Line Numbers ====>'+e.getLineNumber());
-        }
+            System.debug('Exception occured ===>'+e.getMessage());
+            System.debug('Exception Occured in Line ====>'+e.getLineNumber());   
+        }    
     }
+*/    
+
+        public static void createProductTransferForBackOrder(Map<Id, Order> oldOrderMap, Map<Id, Order> newOrderMap) {
+            // 1. product is taggerd, qs 
+            
+            Id transferRecordTypeId = Schema.SObjectType.ProductTransfer.getRecordTypeInfosByName().get('Transfer').getRecordTypeId();
+            List<ProductTransfer> transfersToCreate = new List<ProductTransfer>();
+
+            Set<Id> orderIdsToProcess = new Set<Id>();
+            Set<Id> purchaseOrderIds = new Set<Id>();
+            Set<Id> product2Ids = new Set<Id>();
+            Map<Id, Order> ordersToProcess = new Map<Id, Order>();
+
+            // Collect necessary data
+            for (Id orderId : newOrderMap.keySet()) {
+                Order oldOrder = oldOrderMap.get(orderId);
+                Order newOrder = newOrderMap.get(orderId);
+
+                if (oldOrder.Status == 'Back Order' && newOrder.Status == 'Activated' && newOrder.Purchase_Order__c != null) {
+                    orderIdsToProcess.add(orderId);
+                    purchaseOrderIds.add(newOrder.Purchase_Order__c);
+                    ordersToProcess.put(orderId, newOrder);
+                }
+            }
+
+            if (orderIdsToProcess.isEmpty()) {
+                return; // Nothing to process
+            }
+
+            // Query Purchase Orders and their Line Items
+            Map<Id, ProductRequest> purchaseOrderMap = new Map<Id, ProductRequest>(
+                [SELECT Id, DestinationLocationId,
+                    (SELECT Id, QuantityRequested, Product2Id FROM ProductRequestLineItems)
+                FROM ProductRequest WHERE Id IN :purchaseOrderIds]
+            );
+
+            // Query Order Items
+            Map<Id, List<OrderItem>> orderItemsMap = new Map<Id, List<OrderItem>>();
+            for (OrderItem oi : [
+                SELECT Id, Product2Id, Quantity, OrderId
+                FROM OrderItem
+                WHERE OrderId IN :orderIdsToProcess
+            ]) {
+                if (!orderItemsMap.containsKey(oi.OrderId)) {
+                    orderItemsMap.put(oi.OrderId, new List<OrderItem>());
+                }
+                orderItemsMap.get(oi.OrderId).add(oi);
+                product2Ids.add(oi.Product2Id);
+            }
+
+            Set<Id> destinationLocationIds = new Set<Id>();
+            for (ProductRequest pr : purchaseOrderMap.values()) {
+                if (pr.DestinationLocationId != null) {
+                    destinationLocationIds.add(pr.DestinationLocationId);
+                }
+            }
+
+            Map<Id, ProductItem> productItemMap = new Map<Id, ProductItem>();
+            for (ProductItem pi : [
+                SELECT Id, Product2Id, LocationId
+                FROM ProductItem
+                WHERE Product2Id IN :product2Ids AND LocationId IN :destinationLocationIds
+            ]) {
+                productItemMap.put(pi.Product2Id, pi);
+            }
+
+            System.debug('orderItemsMap====>'+orderItemsMap);
+            System.debug('purchaseOrderMap====>'+purchaseOrderMap);
+            System.debug('productItemMap====>'+productItemMap);
+
+            // Query Product Items (Product Inventory)
+            //purchase ord=er is product request
+            
+
+            // Create Product Transfers
+            for (Id orderId : ordersToProcess.keySet()) {
+                Order newOrder = ordersToProcess.get(orderId);
+                ProductRequest purchaseOrder = purchaseOrderMap.get(newOrder.Purchase_Order__c);
+                List<OrderItem> orderItems = orderItemsMap.get(orderId);
+                System.debug('orderItems::::'+orderItems);
+
+                if (purchaseOrder != null && orderItems != null) {
+                    for (OrderItem oi : orderItems) {
+                        if (productItemMap.containsKey(oi.Product2Id)) {
+                            ProductItem matchingProductItem = productItemMap.get(oi.Product2Id);
+                            System.debug('matchingProductItem::::'+ matchingProductItem);
+
+                            ProductTransfer pt = new ProductTransfer();
+                            pt.Product2Id = oi.Product2Id;
+                            pt.Order__c = orderId;
+                            pt.RecordTypeId = transferRecordTypeId;
+                            pt.Order_Product__c = oi.Id;
+                            pt.QuantitySent = oi.Quantity;
+                            pt.QuantityReceived = 0;
+                            pt.Driver_Phone__c = '0';
+                            pt.LR_Number__c = '0';
+                            pt.DestinationLocationId = purchaseOrder.DestinationLocationId;
+                            pt.Product_Inventory__c = matchingProductItem.Id;
+
+                            // need to tag 2 things daily ledger and Shipment Item
+                            transfersToCreate.add(pt);
+                        }
+                    }
+                }
+            }
+
+            // Insert Product Transfers
+            if (!transfersToCreate.isEmpty()) {
+                try {
+                    insert transfersToCreate;
+                } catch (DmlException e) {
+                    System.debug('Error inserting Product Transfers: ' + e.getMessage());
+                }
+            }
+        }
+
+
 }

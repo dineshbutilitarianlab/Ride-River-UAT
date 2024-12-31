@@ -683,9 +683,9 @@ export default class Testcomponenet extends NavigationMixin(LightningElement) {
                     let arrData = [];
                     for (let i = 0; i < valueArr.length; i++) {
                         let val = {
-                            LeadName: valueArr[i].Lead__c ? valueArr[i].Lead__r.Name : '',
+                           LeadName: valueArr[i]?.Lead__c ? valueArr[i]?.Lead__r?.Name || '' : '',
                             Veiw_lead: valueArr[i].Lead__c ? valueArr[i].Lead__c : '',
-                            Lead_Age__c: valueArr[i].Lead__c ? valueArr[i].Lead__r.Lead_Age__c : '',
+                           Lead_Age__c: valueArr[i].Lead__c ? valueArr[i].Lead__r?.Lead_Age__c ||'' : '',
                             FollowupDate: this.followupconvertToIST(valueArr[i].Follow_Up_Date__c),
                             Follow_Up__c: valueArr[i].Follow_Up__c ? valueArr[i].Follow_Up__c : '',
                             // Folllow_Up1_Summary__c: valueArr[i].Folllow_Up1_Summary__c ? valueArr[i].Folllow_Up1_Summary__c : '',
@@ -695,16 +695,16 @@ export default class Testcomponenet extends NavigationMixin(LightningElement) {
                             Subject: valueArr[i].Subject__c ? valueArr[i].Subject__c : '',
                             FollupId: valueArr[i].Id,
                             Lead__c: valueArr[i].Lead__c ? valueArr[i].Lead__c : '',
-                            Phone__c: valueArr[i].Lead__c ? valueArr[i].Lead__r.Phone__c : '',
-                           Country: valueArr[i].Lead__c ? valueArr[i].Lead__r.Country : '',
-                           State: valueArr[i].Lead__c ? valueArr[i].Lead__r.State : '',
-                           City: valueArr[i].Lead__c ? valueArr[i].Lead__r.City : '',
-                           Street: valueArr[i].Lead__c ? valueArr[i].Lead__r.Street : '',
-                           PostalCode: valueArr[i].Lead__c ? valueArr[i].Lead__r.PostalCode : ''
+                            Phone__c: valueArr[i].Lead__c ? valueArr[i].Lead__r?.Phone ||'' : '',
+                          // Country: valueArr[i].Lead__c ? valueArr[i].Lead__r.Country : '',
+                           //State: valueArr[i].Lead__c ? valueArr[i].Lead__r.State : '',
+                          // City: valueArr[i].Lead__c ? valueArr[i].Lead__r.City : '',
+                         //  Street: valueArr[i].Lead__c ? valueArr[i].Lead__r.Street : '',
+                          // PostalCode: valueArr[i].Lead__c ? valueArr[i].Lead__r.PostalCode : ''
 
 
                         }
-                        console.log('phone=' + JSON.stringify(val.Country));
+                        console.log('phone=' + JSON.stringify(val.Phone__c));
                         arrData.push(val);
 
                         this.recordId = valueArr[i].Lead__c ? valueArr[i].Lead__c : '';
@@ -740,10 +740,10 @@ export default class Testcomponenet extends NavigationMixin(LightningElement) {
                     for (let i = 0; i < valueArr.length; i++) {
                         console.log('valueArr[i].MobilePhone__c>>>>' + JSON.stringify(valueArr[i].MobilePhone__c));
                         let value = {
-                            LeadName: valueArr[i].Lead__c ? valueArr[i].Lead__r.Name : '',
+                           LeadName: valueArr[i]?.Lead__c ? valueArr[i]?.Lead__r?.Name || '' : '',
                             Mobile: valueArr[i].MobilePhone__c ? valueArr[i].MobilePhone__c : '',
                             Ride_Type__c: valueArr[i].Ride_Type__c ? valueArr[i].Ride_Type__c : '',
-                            Lead_Age__c: valueArr[i].Lead__c ? valueArr[i].Lead__r.Lead_Age__c : '',
+                            Lead_Age__c: valueArr[i].Lead__c ? valueArr[i].Lead__r?.Lead_Age__c ||'' : '',
                             //  datandtime: valueArr[i].Test_Drive_Date__c ? valueArr[i].Test_Drive_Date__c : '',
                             Indemnity__c: valueArr[i].Indemnity__c ? valueArr[i].Indemnity__c : '',
                             Drivers_License_Number__c: valueArr[i].Drivers_License_Number__c ? valueArr[i].Drivers_License_Number__c : '',

@@ -1,26 +1,12 @@
-@isTest
-    public class cardsComponentControllerTest {
-        @isTest
-        public static void cardsComponentControllerTest(){
-            Account testAccount = new Account(
-            Name = 'Test Account',
-            Phone = '9876543210',
-            Email__c = 'test@gmail.com',
-            Type = 'Customer'
-        );
-        insert testAccount;
-            
-                Contact testContact = new Contact(AccountId=testAccount.Id,LastName='Test Contact',Phone='9876543210');
-         insert testContact;
-            
-           User testUser = new User(ContactId=testContact.Id);
-            insert testUser;
-            
-            Test.startTest();
-            cardsComponentController.fetchOnLoadData(testUser.Id);
-            Test.stopTest();
-            
-            
-        }
-
+@IsTest(SeeAllData=true)
+public class cardsComponentControllerTest {
+    @isTest
+    public static void cardsComponentControllerTest() {
+        User use = [SELECt Id,Name,Profile.Name from User WHeRE Profile.Name = 'Sales Manager (Partner)' AND isActive = true AND  Contact.Location__c != null LIMIT 1];
+        Test.startTest();
+        cardsComponentController.fetchOnLoadData(use.Id);
+        cardsComponentController.fetchOnLoadData(UserInfo.getUserId());
+        cardsComponentController.fetchOnLoadData(null);
+        Test.stopTest();
+    }
 }

@@ -7,7 +7,7 @@ public class POPaymentsController1Test {
         Account testAccount = new Account(
             Name = 'Test Account',
             Phone = '9876543210',
-            Email__c = 'test@gmail.com',
+            Email__c = 'test@gmail.com', 
             Type = 'Customer'
         );
         insert testAccount;

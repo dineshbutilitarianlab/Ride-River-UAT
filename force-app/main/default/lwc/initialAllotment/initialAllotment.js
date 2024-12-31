@@ -2,7 +2,7 @@
  * @author Dinesh Baddawar
  * @email dinesh.butilitarianlab@gmail.com
  * @create date 2024-12-11 23:03:34
- * @modify date 2024-12-11 23:03:57
+ * @modify date 2024-12-26 13:39:14
  * @desc [InitialAllotment Comp LWC]
  */
 
@@ -20,12 +20,14 @@ export default class InitialAllotment extends LightningElement {
     showSpinner = false;
 
     connectedCallback(){
+        debugger;
         this.recordId = this.recordId;
     }
 
     @wire(getProductRequestItemsWithAvailableQty, { recordId: '$recordId' })
     wiredProductRequestItems({ error, data }) {
         if (data) {
+            debugger;
             this.requestLineItems = data.map((item) => ({
                 // Id: res.Id,
                 // Name: res.ProductRequestLineItemNumber,
@@ -57,6 +59,7 @@ export default class InitialAllotment extends LightningElement {
 
     // Handle input changes in quantity
     handleInputChange(event) {
+        debugger;
         const rowId = event.target.dataset.id;
         const updatedValue = event.target.value; 
         this.updatedValues.set(rowId, updatedValue); 
@@ -70,6 +73,8 @@ export default class InitialAllotment extends LightningElement {
 
     // Handle the Save process and validate the allocations
     handleUpdateProcess() {
+        debugger;
+        this.showSpinner = true;
         for (let [id, value] of this.updatedValues.entries()) {
             const item = this.requestLineItems.find(item => item.Id === id);
 
@@ -95,6 +100,18 @@ export default class InitialAllotment extends LightningElement {
                 );
                 return;
             }
+
+              if (parseFloat(value) == undefined || parseFloat(value)  == 0 || parseFloat(value)  == '') {
+                debugger;
+                this.dispatchEvent(
+                    new ShowToastEvent({
+                        title: 'Error',
+                        message: `Allocated Quantity cannot be Null / Zero / Blank for Product: ${item.ProductName}`,
+                        variant: 'error'
+                    })
+                );
+                return;
+            }
             
         
         }
@@ -109,8 +126,22 @@ export default class InitialAllotment extends LightningElement {
             };
         });
 
+        if(updatedItems.length == 0){
+             this.dispatchEvent(
+                    new ShowToastEvent({
+                        title: 'Error',
+                        message: `Please Provide Allocated Quantity before update !`,
+                        variant: 'error'
+                    })
+                );
+                return;
+        }
+        
         updateRequestLineItem({ updatedItems })
+        
             .then(() => {
+                debugger;
+                this.showSpinner = false;
                 this.dispatchEvent(
                     new ShowToastEvent({
                         title: 'Success',

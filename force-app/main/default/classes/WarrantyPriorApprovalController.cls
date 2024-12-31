@@ -65,11 +65,10 @@ public with sharing class WarrantyPriorApprovalController {
             // }
             Approval.ProcessSubmitRequest req = new Approval.ProcessSubmitRequest();
            // if(warrantyToUpdate.Approval_Fired__c == false){
-                req.setComments('Submitting related Warranty Prior for approval.');
-                req.setObjectId(warrantyToUpdate.Id);
+                req.setComments('Submitting related Warranty Prior for approval.'); req.setObjectId(warrantyToUpdate.Id); Approval.ProcessResult result = Approval.process(req);
             //}
             
-            Approval.ProcessResult result = Approval.process(req);
+            
             
             // if(result.isSuccess()){
             //     return 'Success';
@@ -100,13 +99,13 @@ public with sharing class WarrantyPriorApprovalController {
     public static Warranty_Prior__c getRelatedWarrantyPrior(Id workOrderId) {
         try{
             // Fetch related Warranty Prior record
-            List<Warranty_Prior__c> records = [
+            Warranty_Prior__c record = [
                 SELECT Id, Name, Status__c 
                 FROM Warranty_Prior__c 
                 WHERE Job_Card__c = :workOrderId 
                 LIMIT 1
             ];
-            return records.isEmpty() ? null : records[0]; 
+            return record;  
         }catch(exception e){
             system.debug('Error Message'+e.getMessage()+ ' at Line Number'+ e.getLineNumber());
             return null;

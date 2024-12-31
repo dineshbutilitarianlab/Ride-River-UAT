@@ -126,9 +126,9 @@ public with sharing class WarrantyTagPDFController {
                 System.debug('Date of Failure (DOF): ' + DOF);
 
             } catch (Exception ex) {
-                System.debug('Error fetching Claim Item: ' + ex.getMessage());
+                System.debug('Error fetching Claim Item:  ' + ex.getMessage());
                 ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR, 'Error fetching Claim Item: ' + ex.getMessage()));
-            }
+            } 
         } else {
             System.debug('No Claim Item found.');
             ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR, 'No Claim Item found.'));

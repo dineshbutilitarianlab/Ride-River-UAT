@@ -1,9 +1,17 @@
 <template>
 
   <lightning-quick-action-panel header="">
-        <lightning-card title="Receive GRN Details" icon-name="standard:product_item_transaction">
 
-            <template if:true={showSpinner}>
+    <template if:true={ShowGRNDone}>
+        <lightning-card title="GRN Details Already Submited ! " icon-name="standard:product_item_transaction">
+
+        </lightning-card>
+    </template>
+    <template if:false={ShowGRNDone}>
+ 
+        <lightning-card title="Receive GRN Details" icon-name="standard:product_item_transaction">
+   
+             <template if:true={showSpinner}>
                 <lightning-spinner></lightning-spinner>
             </template>
             <div class="slds-p-around_medium">
@@ -12,10 +20,8 @@
                         <thead>
                             <tr>
                                 <th><lightning-input type="checkbox" label="Select All" onchange={handleSelectAll} checked={selectAllChecked}></lightning-input></th>
-                                <!-- <th scope="col">Name</th> -->
                                 <th scope="col">Product Name</th>
                                 <th scope="col">Shipped Quantity</th>
-                                <!-- <th scope="col">Alloted Quantity</th> -->
                                 <th scope="col">Received Quantity</th>
                             </tr>
                         </thead>
@@ -25,10 +31,8 @@
                                     <td>
                                         <lightning-input type="checkbox" data-id={item.Id} checked={item.selected} onchange={handleCheckboxChange}></lightning-input>
                                     </td>
-                                    <!-- <td>{item.Name}</td> -->
                                     <td>{item.ProductName}</td>
                                     <td><center>{item.QuantityRequested}</center></td>
-                                    <!-- <td><center>{item.AllocatedQuantity}</center></td> -->
                                     <td>
                                         <lightning-input type="number" data-id={item.Id} value={item.RecievedQuantity} onchange={handleInputChange} disabled={item.isChargesDisabled} class="wide-input"></lightning-input>
                                     </td>
@@ -47,6 +51,8 @@
                 <lightning-button label="Submit" variant="brand" onclick={handleUpdateProcess}></lightning-button>
             </center>
 
-            </lightning-card>
+            
+        </lightning-card>
+    </template>
      </lightning-quick-action-panel>
 </template>

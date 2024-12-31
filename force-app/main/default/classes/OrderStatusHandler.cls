@@ -1,4 +1,5 @@
 public without sharing class OrderStatusHandler {
+    
     public static void updateVehicle(List<Order> lstNewOrder, Map<Id, Order> oldMap) {
         try {
             List<Vehicle> vehiclesToUpdate = new List<Vehicle>();
@@ -68,7 +69,7 @@ public without sharing class OrderStatusHandler {
             
             System.debug(vehiclesToUpdate);
         } catch (Exception e) {
-            throw new MyException('Error: ' + e.getMessage());
+            System.debug('Error Message ==>'+e.getMessage()+' && Error Line == >'+e.getLineNumber());
         }
     }
     
@@ -192,7 +193,7 @@ public without sharing class OrderStatusHandler {
         
         If(!setOfOrder.isEmpty())
             System.debug('AttachmentHandlerClass Called Dinesh 1');
-            AttachmentHandlerClass.AttachmentHandlerMethod(setOfOrder, JSON.serialize(orderToItemTypeMap));
+        AttachmentHandlerClass.AttachmentHandlerMethod(setOfOrder, JSON.serialize(orderToItemTypeMap));
         
     }
     //=============================================================================================================================================================
@@ -333,7 +334,12 @@ public without sharing class OrderStatusHandler {
             Set<String> OldOrderInvName = new Set<String>();
             Integer oldOrerInvoiceRecordSize = [SELECT Id,Name,Order__c FROM Order_Invoice__c WHERE Order__c=:oldOrdersMap.values()[0].Id].size();
             System.debug('oldOrerInvoiceRecordSize === >'+oldOrerInvoiceRecordSize);
-            for(Order_Invoice__c ord : [SELECT Id,Name,Order__c FROM Order_Invoice__c WHERE Order__c=:oldOrdersMap.values()[0].Id]){
+            if(oldOrerInvoiceRecordSize == 0){
+                System.debug('Its New Invoive record to Create');
+            } 
+            String OrderIdOldMap = oldOrdersMap.values()[0].Id;
+            List<Order_Invoice__c> ordInvList = [SELECT Id,Name,Order__c FROM Order_Invoice__c WHERE Order__c =:OrderIdOldMap];
+            for(Order_Invoice__c ord : ordInvList){
                 OldOrderInvName.add(ord.Name);
             }
             System.debug('OldOrderInvName === >'+OldOrderInvName);
@@ -344,15 +350,21 @@ public without sharing class OrderStatusHandler {
                     orderIdToDealerId.put(objOrder.Id, objOrder.Dealer__c);   
                 }
             }
-            for (OrderItem objOrderItem : [SELECT Id, Type__c, OrderId FROM OrderItem WHERE OrderId IN :orderIdToDealerId.keySet()]) {
+            System.debug('accIdSet === >'+accIdSet+' && orderIdToDealerId == >'+orderIdToDealerId);
+            
+            List<OrderItem> newOrderItemList = [SELECT Id, Type__c, OrderId FROM OrderItem WHERE OrderId IN :orderIdToDealerId.keySet()];
+            for (OrderItem objOrderItem : newOrderItemList) {
                 if (!orderToItemTypeMap.containsKey(objOrderItem.OrderId)) {
                     orderToItemTypeMap.put(objOrderItem.OrderId, new Set<String>());
                 }
                 orderToItemTypeMap.get(objOrderItem.OrderId).add(objOrderItem.Type__c);
             }
-            For(Account accObj: [SELECT Id, Invoice_Sequence__c,Center_Code__c FROM Account WHERE Id IN:accIdSet]){
+            System.debug('orderToItemTypeMap === >'+orderToItemTypeMap);
+            List<Account> accList = [SELECT Id, Invoice_Sequence__c,Center_Code__c FROM Account WHERE Id IN:accIdSet];
+            For(Account accObj: accList){
                 accIdToAccMap.put(accObj.id, accObj);
             }
+            
             // Loop through orders and check for different conditions
             for (string orderId : orderToItemTypeMap.keySet()) {
                 Decimal invoicesequence=0;
@@ -363,8 +375,8 @@ public without sharing class OrderStatusHandler {
                     // Loop through order items to capture product names
                     List<OrderItem> orderItems = [SELECT Id, OrderId, Product2Id, Product2.Name, Type__c FROM OrderItem WHERE OrderId = :orderId];
                     Map<String,List<String>> orderItemToProductNameMap = new Map<String, List<String>>();
+                    
                     for (OrderItem orderItem : orderItems) {
-                        
                         if (!orderItemToProductNameMap.containsKey(orderItem.Type__c)) {
                             orderItemToProductNameMap.put(orderItem.Type__c, new List<String>());
                         }
@@ -439,6 +451,7 @@ public without sharing class OrderStatusHandler {
                     }
                 }
             }
+            
             List<Account> accListToUpdate = new List<Account>();
             If(accIdToInvoiceNoToUpdateMap != null){
                 For(string accId: accIdToInvoiceNoToUpdateMap.keySet()){
@@ -448,7 +461,9 @@ public without sharing class OrderStatusHandler {
                     accListToUpdate.add(accObj);
                 }
             }
+            
             Savepoint sp = Database.setSavepoint();
+            
             If(orderInvoicesToInsert.size()>0){
                 try{
                     Integer recordComingForInsert = orderInvoicesToInsert.size();
@@ -495,6 +510,8 @@ public without sharing class OrderStatusHandler {
                 }catch(exception e){
                     Database.rollback(sp);
                 }
+            }else{
+                system.debug('No Invoice Record Found to create Invoice Order');
             }
         }catch(Exception e){
             System.debug('Error Message ==>'+e.getMessage()+' && Error Line == >'+e.getLineNumber());
@@ -508,8 +525,8 @@ public without sharing class OrderStatusHandler {
         invoice.Invoice_Number__c = invoiceSequence;
         invoice.Invoice_Type__c = invoiceType+' Invoice';
         invoice.Order__c = orderId;
-        If(productName != null)
-        invoice.Order_Name__c = string.join(productName,',');
+        //If(productName != null)
+          //  invoice.Order_Name__c = string.join(productName,',');
         
         Return invoice;
     }

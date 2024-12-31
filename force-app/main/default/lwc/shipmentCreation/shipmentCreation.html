@@ -2,7 +2,29 @@
     <!-- Shipment Creation Form -->
     <template if:true={showShipmentForm}>
         <lightning-card title="Create Shipment" icon-name="action:new_note">
-            <div class="slds-p-around_medium">
+    <!-- Contact Details Section -->
+    <div class="slds-p-around_medium">
+        <template if:true={dealerOrderInfo}>
+            <div class="contact-details-container">
+                <div class="contact-item">
+                    <lightning-icon icon-name="utility:call" alternative-text="Phone" size="small" class="contact-icon"></lightning-icon>
+                    <strong>Phone:</strong> {dealerOrderInfo.dealerPhone}
+                </div>
+                <div class="contact-item">
+                    <lightning-icon icon-name="utility:email" alternative-text="Email" size="small" class="contact-icon"></lightning-icon>
+                    <strong>Email:</strong>
+                    <a href="mailto:{dealerOrderInfo.dealerEmail}" class="contact-email">
+                        {dealerOrderInfo.dealerEmail}
+                    </a>
+                </div>
+            </div>
+        </template>
+        <template if:false={dealerOrderInfo}>
+            <div class="no-details-container">
+                <p class="no-details">No contact details available.</p>
+            </div>
+        </template>
+    </div>            <div class="slds-p-around_medium">
                 <lightning-record-edit-form object-api-name="Shipment" onsuccess={handleShipmentSuccess}>
                     <h2 class="slds-text-heading_medium slds-border_bottom slds-p-bottom_x-small">Shipment Information</h2>
                     <lightning-layout>
@@ -10,7 +32,8 @@
                         <lightning-layout-item size="6">
                             <lightning-layout multiple-rows>
                                 <lightning-layout-item size="12" class="slds-p-around_x-small">
-                                    <lightning-input-field field-name="ShipToName" data-id="ShipToName" onchange={handleShipmentFieldChange} class="slds-m-bottom_small" required></lightning-input-field>
+                                    <lightning-input-field field-name="ShipToName" data-id="ShipToName" 
+                                    onchange={handleShipmentFieldChange} class="slds-m-bottom_small" value={ShipmentInformation.ShipToName} required></lightning-input-field>
                                 </lightning-layout-item>
                                 <!-- <lightning-layout-item size="12" class="slds-p-around_x-small">
                                     <lightning-input-field field-name="Driver_Phone__c" data-id="Driver_Phone__c" onchange={handleShipmentFieldChange} class="slds-m-bottom_small" required></lightning-input-field>
@@ -20,45 +43,39 @@
                         </lightning-layout-item>
                 
                         <!-- Right Column: Additional Details -->
-                        <lightning-layout-item size="6">
-                            <lightning-layout multiple-rows>
+                        <!-- <lightning-layout-item size="6">
+                            <lightning-layout multiple-rows> -->
                                 <!-- <lightning-layout-item size="12" class="slds-p-around_x-small">
                                     <lightning-input-field field-name="LR_Number__c" data-id="LR_Number__c" onchange={handleShipmentFieldChange} class="slds-m-bottom_small" required></lightning-input-field>
                                 </lightning-layout-item> -->
-                                <lightning-layout-item size="12" class="slds-p-around_x-small">
+                                <!-- <lightning-layout-item size="12" class="slds-p-around_x-small"> -->
                                     <!-- Label and Combobox side by side -->
-                                    <div class="custom-provider-container">
+                                    <!-- <div class="custom-provider-container"> -->
                                         <!-- Label -->
-                                        <div class="custom-provider-label">
+                                        <!-- <div class="custom-provider-label">
                                             <label for="providerPicklist" > <span style="color:red">*</span>Provider </label>
-                                        </div>
+                                        </div> -->
                                         <!-- Combobox -->
-                                        <div class="custom-provider-combobox">
+                                        <!-- <div class="custom-provider-combobox">
                                             <lightning-combobox
                                                 name="providerPicklist"
                                                 placeholder="Select a Provider"
                                                 options={picklistValues}
                                                 value={value}
                                                 onchange={handlePicklistChange}
-                                                disabled="true"
                                                 
                                             ></lightning-combobox>
                                         </div>
                                     </div>
                                 </lightning-layout-item>
                             </lightning-layout>
-                        </lightning-layout-item>
-                        
-                        
+                        </lightning-layout-item> -->
                     </lightning-layout>
                     
                 </lightning-record-edit-form>
                 
-                
-
                 <!-- Action Buttons -->
                 <div class="slds-m-top_large slds-align_absolute-center">
-                    <!-- <lightning-button label="Get Shipment Record" onclick={handleGetShipmentRecord} class="slds-m-right_small"></lightning-button> -->
                     <lightning-button label="Next" onclick={handleNext} variant="brand"></lightning-button>
                 </div>
             </div>
@@ -82,8 +99,8 @@
         </lightning-card>
     </template>
 
-
-<template if:true={showOrderItems}>
+    <!-- Order Products -->
+    <template if:true={showOrderItems}>
         <lightning-card title="Order Products" icon-name="utility:cart">
             <div class="slds-p-around_medium">
                 <table class="slds-table slds-table_bordered slds-table_cell-buffer">
@@ -92,6 +109,7 @@
                             <th scope="col">
                                 <lightning-input type="checkbox" onchange={handleSelectAll}></lightning-input>
                             </th>
+
                             <th scope="col">Product Name</th>
                             <th scope="col">Quantity</th>
                             <th scope="col">Shipped Quantity</th>
@@ -130,7 +148,12 @@
                         </template>
                     </tbody>
                 </table>
-                <div class="slds-align_absolute-center">
+
+                <template if:true={isLoading}>
+                    <lightning-spinner></lightning-spinner>
+                </template>
+
+                <div class="slds-m-top_large slds-align_absolute-center">
                     <lightning-button label="Back" onclick={handleBackToForm} class="slds-m-right_small"></lightning-button>
                     <lightning-button label="Save" onclick={handleSave} variant="brand"></lightning-button>
                 </div>

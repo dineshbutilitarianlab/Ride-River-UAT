@@ -13,9 +13,12 @@ export default class BulkInsertPoPayments extends LightningElement {
     showRow = false; // Controls visibility of "Add More" section
     existingPayments = []; // Stores fetched payments
     purchaseOrderId; 
+    grandTotal;
     @track itemList = [{ id: 0 }]; // Tracks dynamic rows
     @api recordId; // Record ID from context
     @track wireRecordId; // Record ID fetched using CurrentPageReference
+    @track showSubmit = false;
+    @api orderid;
 
     // Columns for the lightning-datatable
     columns = [
@@ -36,24 +39,39 @@ export default class BulkInsertPoPayments extends LightningElement {
             fieldName: 'Payment_reference__c',
             type: 'text'
         },
+        {
+            label: 'Status',
+            fieldName: 'Status__c',
+            type: 'text'
+        },
         { label: 'Amount Paid', fieldName: 'Amount_Paid__c', type: 'currency' },
         {
+            label: 'Action',
             type: 'button',
             typeAttributes: {
                 label: 'Delete',
                 name: 'delete',
                 variant: 'destructive',
-                iconName: 'utility:delete',
-                iconPosition: 'left'
+                iconName: 'action:delete',
+                iconPosition: 'left',
+                class: 'small-button',
+                disabled: { fieldName: 'disableDelete' }
             }
-        }
+        },
     ];
+
+    connectedCallback(){
+        debugger;
+        this.orderid = this.orderid;
+        this.recordId = this.orderid;
+    }
 
     // Fetch the related Order record
     @wire(getOrder, { orderId: '$recordId' })
     wiredOrder({ error, data }) {
         if (data) {
             this.purchaseOrderId = data.Purchase_Order__c; // Get related Purchase Order
+            this.grandTotal = data.PO_Grand_Total__c;
         } else if (error) {
             console.error('Error fetching Order:', error);
         }
@@ -79,7 +97,9 @@ export default class BulkInsertPoPayments extends LightningElement {
                 paymentOrderUrl: `/${payment.Id}`,
                 paymentOrderName: payment.Name, 
                 purchaseOrderUrl: `/${payment.Purchase_Order__c}`,
-                purchaseOrderName: payment.Purchase_Order__r ? payment.Purchase_Order__r.ProductRequestNumber : ''
+                paymentStatus: payment.Status__c, 
+                purchaseOrderName: payment.Purchase_Order__r ? payment.Purchase_Order__r.ProductRequestNumber : '',
+                disableDelete: payment.Status__c === 'Approved' || payment.Status__c === 'Pending'
             }));
         } else if (result.error) {
             this.showToast('Error', 'Error fetching PO Payments.', 'error');
@@ -90,6 +110,7 @@ export default class BulkInsertPoPayments extends LightningElement {
     toggleTemplates() {
       //  this.showPayments = !this.showPayments;
         this.showRow = !this.showRow;
+        this.showSubmit = !this.showSubmit;
     }
 
     // Adds a new row to the itemList
@@ -122,17 +143,26 @@ export default class BulkInsertPoPayments extends LightningElement {
         const actionName = event.detail.action.name;
         const row = event.detail.row;
     
-        if (actionName === 'delete') {
+        if (row.Status__c === 'Approved') {
+            // Show error message as a toast
+            this.showToast('Error', "Can't delete an Approved PO payment.", 'error');
+        } else if (row.Status__c === 'Pending') {
+            // Show error message as a toast
+            this.showToast('Error', "Can't delete an Pending PO payment.", 'error');
+        }
+        else {
+            // Proceed with deletion if the status is not approved
             this.deletePayment(row.Id);
         }
     }
     
 
-    handleSubmit() {
+    handleSubmit(event) {
         let isValid = true;
         let hasNegativeAmount = false;
         let utrValue = '';
-    
+        const tolerance = 0.0001;
+
         // Validate all fields in the form
         this.template.querySelectorAll('lightning-input-field').forEach((field) => {
             isValid = isValid && field.reportValidity();
@@ -140,7 +170,7 @@ export default class BulkInsertPoPayments extends LightningElement {
             // Check if the field is Amount_Paid__c and validate its value
             if (field.fieldName === 'Amount_Paid__c') {
                 const fieldValue = parseFloat(field.value || 0);
-                if (fieldValue < 0) {
+                if (fieldValue  !== parseFloat(this.grandTotal)) {
                     hasNegativeAmount = true;
                     isValid = false; // Mark the form as invalid
                 }
@@ -153,10 +183,10 @@ export default class BulkInsertPoPayments extends LightningElement {
         });
     
         if (hasNegativeAmount) {
-            this.showToast('Error', 'Amount Paid cannot be negative. Please enter a valid amount.', 'error');
-            return;
+            this.showToast('Error', 'Amount Paid must be equal to Grand Total', 'error');
+            return;              
         }
-    
+                                                                               
         if (isValid) {
             // Call Apex to check for duplicate UTR
             checkDuplicateUTR({ utr: utrValue })

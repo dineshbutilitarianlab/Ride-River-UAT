@@ -1,5 +1,5 @@
 public with sharing class cardsComponentController {
-
+    
     @AuraEnabled(cacheable = true)
     public static String fetchOnLoadData(String userId) {
         if(userId != null){

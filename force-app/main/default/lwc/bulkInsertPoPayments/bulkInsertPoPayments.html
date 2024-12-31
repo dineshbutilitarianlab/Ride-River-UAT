@@ -9,6 +9,18 @@
                     <h1 class="slds-text-heading_small slds-m-bottom_xx-small">PO Payments</h1>
                 </div>
                 <div class="header-actions">
+                    <!-- Conditionally Rendered Submit Button -->
+                    <template if:true={showSubmit}>
+                        <lightning-button 
+                            variant="brand" 
+                            onclick={handleSubmit} 
+                            name="Submit" 
+                            type="Submit" 
+                            label="Submit" 
+                            class="custom-submit-button slds-m-right_medium">
+                        </lightning-button>
+                    </template>
+                <template if:false={existingPayments.length}>
                     <lightning-button 
                         variant="brand" 
                         onclick={toggleTemplates} 
@@ -16,8 +28,10 @@
                         label="Add More" 
                         class="custom-add-button">
                     </lightning-button>
+                </template>
                 </div>
-            </div>            <template if:true={existingPayments}>
+            </div>            
+            <template if:true={existingPayments}>
                 <div class="slds-p-around_medium slds-scrollable_y">
                     <lightning-datatable 
                         key-field="Id" 
@@ -74,7 +88,7 @@
                                     required>
                                 </lightning-input-field>
                             </lightning-layout-item>
-                            <lightning-layout-item size="2" large-device-size="2" class="slds-p-horizontal_small">
+                            <lightning-layout-item size="2" large-device-size="3" class="slds-p-horizontal_small">
                                 <lightning-input-field 
                                     field-name="Order__c"
                                     variant="label-stacked" 
@@ -82,7 +96,7 @@
                                     disabled>
                                 </lightning-input-field>
                             </lightning-layout-item>
-                            <lightning-layout-item size="2" large-device-size="2" class="slds-p-horizontal_small">
+                            <lightning-layout-item size="2" large-device-size="3" class="slds-p-horizontal_small">
                                 <lightning-input-field 
                                     field-name="Amount_Paid__c" 
                                     variant="label-stacked" 
@@ -91,7 +105,7 @@
                             </lightning-layout-item>
 
                             <!-- Add and Remove Row Buttons -->
-                            <lightning-layout-item size="2" large-device-size="2" class="slds-text-align_center slds-p-top_small">
+                            <!-- <lightning-layout-item size="2" large-device-size="2" class="slds-text-align_center slds-p-top_small">
                                 <lightning-icon 
                                     class="custom-icon" 
                                     icon-name="action:new" 
@@ -108,7 +122,7 @@
                                     title="Delete Row" 
                                     onclick={removeRow}>
                                 </lightning-icon>
-                            </lightning-layout-item>
+                            </lightning-layout-item> -->
                         </lightning-layout>
                     </lightning-record-edit-form>
                 </div>
@@ -123,14 +137,14 @@
                     label="Cancel" 
                     class="slds-m-right_small">
                 </lightning-button>
-                <lightning-button 
+                <!-- <lightning-button 
                     variant="brand" 
                     onclick={handleSubmit} 
                     name="Submit" 
                     type="Submit" 
                     label="Submit" 
                     class="custom-submit-button">
-                </lightning-button>
+                </lightning-button> -->
             </div>
         <!-- </lightning-card> -->
     </template>

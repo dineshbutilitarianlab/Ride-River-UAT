@@ -26,7 +26,7 @@ public class RSACalloutHandler_test {
         p.Type__c = 'Accessories';
         p.HSN_Code__c = '00000000';
         insert p; 
-
+        
         // Query Standard Pricebook
         
         VehicleDefinition vd = new VehicleDefinition();
@@ -50,8 +50,8 @@ public class RSACalloutHandler_test {
         Pricebook2 pb = new Pricebook2();
         pb.Name = 'test';
         insert pb; 
-
-          
+        
+        
         
         Order o = new Order();
         o.Pricebook2Id = pb.Id;  
@@ -61,56 +61,60 @@ public class RSACalloutHandler_test {
         o.EffectiveDate = Date.today();
         o.Assigned_Vehicle__c = v.Id;
         insert o; 
-              
-       list<Pricebook2> standardPricebook = [SELECT Id,IsStandard,IsActive FROM Pricebook2];
+        
+        list<Pricebook2> standardPricebook = [SELECT Id,IsStandard,IsActive FROM Pricebook2];
         Id standardPricebookcostumproduct;
         for(Pricebook2 ppb:standardPricebook){
             if(ppb.IsStandard==true){
-        PricebookEntry standardPriceEntry = new PricebookEntry();
-        standardPriceEntry.Pricebook2Id = ppb.Id;
-        standardPriceEntry.Product2Id = p.Id;
-        standardPriceEntry.UnitPrice = 10000.00; // Set the standard price
-        standardPriceEntry.IsActive = true;
-        insert standardPriceEntry;
+                PricebookEntry standardPriceEntry = new PricebookEntry();
+                standardPriceEntry.Pricebook2Id = ppb.Id;
+                standardPriceEntry.Product2Id = p.Id;
+                standardPriceEntry.UnitPrice = 10000.00; // Set the standard price
+                standardPriceEntry.IsActive = true;
+                insert standardPriceEntry;
                 PricebookEntry pe = new PricebookEntry();
-        pe.IsActive = true;
-        pe.UnitPrice = 10000.00;
-        pe.Pricebook2Id =ppb.Id ;  
-        pe.Product2Id = p.Id;  
-        insert pe;
-          OrderItem Oitem = new OrderItem();
-        Oitem.Product2Id = p.Id;
-        Oitem.OrderId = o.Id;
-        Oitem.UnitPrice = pe.UnitPrice;
-        Oitem.PricebookEntryId = pe.Id;
-        Oitem.Quantity = 1;
-        insert Oitem;
+                pe.IsActive = true;
+                pe.UnitPrice = 10000.00;
+                pe.Pricebook2Id =ppb.Id ;  
+                pe.Product2Id = p.Id;  
+                insert pe;
+                OrderItem Oitem = new OrderItem();
+                Oitem.Product2Id = p.Id;
+                Oitem.OrderId = o.Id;
+                Oitem.UnitPrice = pe.UnitPrice;
+                Oitem.PricebookEntryId = pe.Id;
+                Oitem.Quantity = 1;
+                insert Oitem;
                 system.debug('Orderidtest'+o.Id);
-
+                
                 standardPricebookcostumproduct=pe.Id;
                 
             }
         }
-
         
-
+        
+        
         return o.Id;
-            
+        
     }
-
+    
     @istest
     public static void getchasisnumbertestforstatusvehicleallocationtest() {
+         List<Order> orderlstToadd = new List<Order>();
+        Map<Id, Order> oldMap = new Map<Id, Order>();
         Id orderid = RSACalloutHandler_test.getchasisnumbertestforstatusvehicleallocation();
         Order ord = [SELECT Id, Status FROM Order WHERE Id = :orderid];
         ord.Status = 'Ready For Delivery';
+        oldMap.put(ord.id,ord);
         update ord;
+        orderlstToadd.add(ord);
         List<Order> orderlst = new List<Order>();
-       // Test.startTest();
-       // RSACalloutHandler.getchasisnumber(orderlst);
+        Test.startTest();
+        RSACalloutHandler.getchasisnumber(orderlstToadd,oldMap);
         Test.setMock(HttpCalloutMock.class, new RSACalloutMock());
-       // Test.stopTest();
+        Test.stopTest();
     }
-
+    
     @istest
     public static void getchasisnumbertestforstatusvehicleallocationtestupdatereg() {
         Id orderid = RSACalloutHandler_test.getchasisnumbertestforstatusvehicleallocation();
@@ -119,8 +123,7 @@ public class RSACalloutHandler_test {
         ord.RSA_Active__c = true;
         ord.Payment_Status__c = 'Completed';
         update ord;
-                Test.setMock(HttpCalloutMock.class, new RSACalloutMock());
-
-
+        Test.setMock(HttpCalloutMock.class, new RSACalloutMock());
+        
     }
 }

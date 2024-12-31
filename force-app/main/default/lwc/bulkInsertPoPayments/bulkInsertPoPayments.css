@@ -77,3 +77,14 @@
     fill: #FF5733; /* Bright red for a destructive action */
     color: #FF5733; /* Consistent color for the icon */
 }
+.small-button .slds-button {
+    padding: 0.2rem 0.4rem; /* Adjust as needed */
+    font-size: 0.75rem; /* Smaller font size */
+    height: auto; /* Adjust the height if necessary */
+}
+
+
+/*for hiding button of delete based on status if status is approverd and pending */
+.hide-button .slds-button {
+    display: none;
+}

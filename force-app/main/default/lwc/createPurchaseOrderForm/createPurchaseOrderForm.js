@@ -1,22 +1,22 @@
-import createPurchaseorder from '@salesforce/apex/createPurchaseOrderFormController.createPurchaseorder';
-import getCurrentLogedUserAccountRecord from '@salesforce/apex/createPurchaseOrderFormController.getCurrentLogedUserAccountRecord';
-import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import { LightningElement ,api} from 'lwc';
-import LightningModal from 'lightning/modal';
+//import createPurchaseorder from '@salesforce/apex/ProductRequestLineController.createPurchaseorder';
+import getCurrentLogedUserAccountRecord from '@salesforce/apex/ProductRequestLineController.getCurrentLogedUserAccountRecord';
 import userId from '@salesforce/user/Id';
+import LightningModal from 'lightning/modal';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { api } from 'lwc';
 export default class CreatePurchaseOrderForm extends LightningModal {
     closeModal() {
         this.close('close');
     }
 
     handleChildCloseModal() {
-        this.closeModal(); 
+        this.closeModal();
     }
     status = 'New';
     shipmentType = '';
     accountRecordId = '';
     locationRecordId = '';
-    @api purchaseOrderRecordId;
+    @api purchaseOrderRecordId = {};
 
     firstScreen = true;
     secondScreen = false;
@@ -30,19 +30,21 @@ export default class CreatePurchaseOrderForm extends LightningModal {
         this.apexMethod();
     }
 
-    apexMethod(){
-        debugger;
-        getCurrentLogedUserAccountRecord({loggedInUserId : this.currentUserId})
-        .then(result =>{
-            if(result && result !=null){
-              this.accountName = result;
-            }else{
+    @api POTempObj = {};
 
-            }
-        })
-        .then(error =>{
-          console.log('Error = '+error);
-        })
+    apexMethod() {
+        debugger;
+        getCurrentLogedUserAccountRecord({ loggedInUserId: this.currentUserId })
+            .then(result => {
+                if (result && result != null) {
+                    this.accountName = result;
+                } else {
+
+                }
+            })
+            .then(error => {
+                console.log('Error = ' + error);
+            })
     }
 
     get statusOptions() {
@@ -96,34 +98,45 @@ export default class CreatePurchaseOrderForm extends LightningModal {
             )
             return;
         }
-            createPurchaseorder({ shipmentType: this.shipmentType,loggedInUserId: this.currentUserId })
-                .then((result) => {
-                    debugger;
-                    this.purchaseOrderRecordId = result;
-                    this.secondScreen = true;
-                    this.firstScreen = false;
-                    this.dispatchEvent(
-                        new ShowToastEvent({
-                            title: 'Success',
-                            message: 'New Purchase Order Has Been Created',
-                            variant: 'success'
-                        })
-                    )
-                    this.status = '';
-                    this.shipmentType = '';
-                    this.accountRecordId = '';
-                    this.locationRecordId = '';
-                })
-                .catch((error) => {
-                    this.dispatchEvent(
-                        new ShowToastEvent({
-                            title: 'Failure',
-                            message: 'Something went wrong!!!',
-                            variant: 'error'
-                        })
-                    )
-                })
-        
+
+
+        var obj = {
+            shipmentType: this.shipmentType,
+            loggedInUserId: this.currentUserId
+        };
+
+        this.purchaseOrderRecordId = obj;
+        this.secondScreen = true;
+        this.firstScreen = false;
+
+        // createPurchaseorder({ shipmentType: this.shipmentType, loggedInUserId: this.currentUserId })
+        //     .then((result) => {
+        //         debugger;
+        //         this.purchaseOrderRecordId = result;
+        //         this.secondScreen = true;
+        //         this.firstScreen = false;
+        //         this.dispatchEvent(
+        //             new ShowToastEvent({
+        //                 title: 'Success',
+        //                 message: 'New Purchase Order Has Been Created',
+        //                 variant: 'success'
+        //             })
+        //         )
+        //         this.status = '';
+        //         this.shipmentType = '';
+        //         this.accountRecordId = '';
+        //         this.locationRecordId = '';
+        //     })
+        //     .catch((error) => {
+        //         this.dispatchEvent(
+        //             new ShowToastEvent({
+        //                 title: 'Failure',
+        //                 message: 'Something went wrong!!!',
+        //                 variant: 'error'
+        //             })
+        //         )
+        //     })
+
     }
 
     handleExit() {

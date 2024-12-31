@@ -71,7 +71,7 @@ public class WorkOrderTriggerHandler {
             
             system.debug('total kabour charge is>>'+totalCharge);
             system.debug('totalDiscount charge is>>'+totalDiscount);
-            system.debug('total charge is>>'+(totalDiscount/totalCharge)*100);
+            //system.debug('total charge is>>'+(totalDiscount/totalCharge)*100);
             
             objWorkOrder.Total_Duration_Min__c = totalMinutes;
             objWorkOrder.Total_Duration_Hour__c = totalHours;
@@ -79,8 +79,13 @@ public class WorkOrderTriggerHandler {
             objWorkOrder.SGST_on_Labour_Charges__c = totalSGST;
             objWorkOrder.IGST_on_Labour_Charges__c = totalIGST;
             objWorkOrder.CGST_on_Labour_Charges__c = totalCGST;
-            objWorkOrder.Discount_on_Labour_Codes__c = (totalDiscount/totalCharge)*100;
             
+            if (totalCharge > 0) {
+                objWorkOrder.Discount_on_Labour_Codes__c = (totalDiscount / totalCharge) * 100;
+            } else {
+                objWorkOrder.Discount_on_Labour_Codes__c = 0;
+            }
+
             lstWorkorders.add(objWorkOrder);
         }
 
